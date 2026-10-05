@@ -1,0 +1,722 @@
+// =============================================================================
+// KPMBR-YK — Prisma Schema (TAHAP 1: FOUNDATION)
+// Sumber kebenaran struktur database. phpMyAdmin HANYA untuk melihat/menelusuri
+// data — JANGAN pernah membuat atau mengubah tabel dari sisi sana.
+//
+// Tahap 1 ini hanya memuat fondasi: autentikasi, anggota, riwayat keanggotaan
+// (anggota → alumni), struktur kepengurusan, metadata file, dan audit log.
+// Entitas konten publik (Berita, Agenda, Program Kerja, Dokumentasi,
+// Pengumuman) dan Keuanganrasedi di docs/database-design.md dan diimplementasikan
+// pada tahap 2 setelah rancangan ini ditinjau.
+//
+// Alur perubahan schema (wajib):
+//   Ubah prisma/schema.prisma → npx prisma migrate dev → MySQL
+// =============================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// -----------------------------------------------------------------------------
+// ENUM
+// -----------------------------------------------------------------------------
+
+/// Peran pengguna. Hierarki RBAC lengkap ada di docs/roles-and-permissions.md.
+enum Role {
+  ADMIN
+  PENGURUS
+  ANGGOTA
+  ALUMNI
+}
+
+enum UserStatus {
+  /// Akun dibuat, belum verifikasi email / belum disetujui.
+  PENDING
+  ACTIVE
+  /// Dinonaktifkan sementara (mis. sedang dalam proses investigasi).
+  SUSPENDED
+  /// Nonaktif permanen, data historis tetap disimpan.
+  ARCHIVED
+}
+
+enum Gender {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+/// Siklus hidup keanggotaan: ANGGOTA → LULUS → ALUMNI.
+/// Riwayat TIDAK PERNAH dihapus, hanya berubah status.
+enum MembershipStatus {
+  PENDAFTARAN
+  AKTIF
+  LULUS
+  KELUAR
+  DINONAKTIFKAN
+}
+
+enum MembershipEndReason {
+  LULUS
+  PINDAH_INSTITUSI
+  PINDAH_KOTA
+  MENUNJUK_PENGURUS
+  LAINNYA
+}
+
+enum PositionLevel {
+  KETUA
+  WAKIL_KETUA
+  SEKRETARIS
+  BENDAHARA
+  KEPALA_DIVISI
+  ANGGOTA_DIVISI
+}
+
+/// Tingkat akses file. File TIDAK boleh bisa diakses hanya dengan menebak URL.
+enum FileAccessLevel {
+  PUBLIC
+  MEMBER_ONLY
+  PENGURUS_ONLY
+  ADMIN_ONLY
+}
+
+enum FileKind {
+  IMAGE
+  VIDEO
+  AUDIO
+  PDF
+  SPREADSHEET
+  DOCUMENT
+  OTHER
+}
+
+/// Jenis konten statis yang dikelola melalui CMS sederhana.
+enum ContentKind {
+  SEJARAH
+  VISI
+  MISI
+  NILAI
+  IDENTITAS
+  INFORMASI_UMUM
+  KEANGGOTAAN
+}
+
+/// Aksi audit. Sengaja dibuat enum agar tidak ada aksi arbitrer yang lolos.
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+  LOGIN
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGE
+  ROLE_CHANGE
+  VIEW_SENSITIVE
+  EXPORT
+  UPLOAD
+  DOWNLOAD
+}
+
+// -----------------------------------------------------------------------------
+// AUTENTIKASI
+// -----------------------------------------------------------------------------
+
+/// Identitas login. Berisi kredensial SAJA.
+/// Data profil pribadi (nama, kampus, dsb) ada di Member agar User tetap minimal.
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique @db.VarChar(191)
+  emailVerified DateTime?  @map("email_verified")
+  passwordHash  String?    @map("password_hash") @db.VarChar(255)
+  role          Role       @default(ANGGOTA)
+  status        UserStatus @default(PENDING)
+
+  // Rate limiting / brute force protection (server-side, bukan di frontend).
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  lastLoginAt         DateTime? @map("last_login_at")
+  passwordChangedAt   DateTime? @map("password_changed_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  member               Member?
+  accounts             Account[]
+  sessions             Session[]
+  auditLogs            AuditLog[]
+  files                File[]
+  positionAssignments  PositionAssignment[]
+  organizationContents OrganizationContent[]
+  newsAuthored         News[]                @relation("NewsAuthor")
+  programUpdates       ProgramUpdate[]       @relation("ProgramUpdateAuthor")
+  announcements        Announcement[]        @relation("AnnouncementAuthor")
+
+  @@index([role, status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+/// Auth.js — akun tertaut (OAuth/social login). Disiapkan namun belum dipakai.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String  @db.VarChar(32)
+  provider          String  @db.VarChar(64)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(191)
+  refreshToken      String? @map("refresh_token") @db.Text
+  accessToken       String? @map("access_token") @db.Text
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type") @db.VarChar(64)
+  scope             String? @db.VarChar(191)
+  idToken           String? @map("id_token") @db.Text
+  sessionState      String? @map("session_state") @db.VarChar(191)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Auth.js — sesi database. Menggantikan JWT agar role bisa dicabut server-side
+/// (jika role berubah, sesi lama langsung tidak berlaku).
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token") @db.VarChar(191)
+  userId       String   @map("user_id")
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  /// Pembersihan sesi kedaluwarsa dijalankan berkala; tanpa index ini setiap
+  /// `DELETE ... WHERE expires < NOW()` memindai seluruh tabel.
+  @@index([expires])
+  @@map("sessions")
+}
+
+/// Auth.js — token verifikasi email / reset password.
+model VerificationToken {
+  identifier String   @db.VarChar(191)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// -----------------------------------------------------------------------------
+// ANGGOTA & RIWAYAT KEANGGOTAAN
+// -----------------------------------------------------------------------------
+
+/// Profil anggota. Terpisah dari User agar tabel User tetap ramping dan data
+/// biografis tidak bocor ke tabel kredensial.
+model Member {
+  id     String  @id @default(cuid())
+  userId String? @unique @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  /// Kode anggota, mis. "KPMBR-YK-2021-0001". Dipakai pada kartu anggota digital.
+  memberCode String  @unique @map("member_code") @db.VarChar(32)
+  fullName   String  @map("full_name") @db.VarChar(191)
+  nickname   String? @db.VarChar(64)
+  gender     Gender?
+
+  /// Data akademik — dipakai filter direktori alumni.
+  angkatan       Int?    @map("angkatan")
+  university     String? @db.VarChar(191)
+  studyProgram   String? @map("study_program") @db.VarChar(191)
+  /// Tahun lulus. Tidak diisi sebelum anggota berstatus LULUS.
+  graduationYear Int?    @map("graduation_year")
+
+  phone         String? @db.VarChar(32)
+  /// Hash untuk kontak sensitif. Nomor asli tidak pernah ditampilkan ke publik.
+  addressDetail String? @map("address_detail") @db.VarChar(255)
+  city          String? @db.VarChar(100)
+  bio           String? @db.Text
+
+  avatarFileId String? @map("avatar_file_id")
+  avatarFile   File?   @relation("MemberAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
+
+  /// Opt-in anggota untuk ditampilkan di direktori alumni publik.
+  isDirectoryVisible Boolean @default(false) @map("is_directory_visible")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  memberships         Membership[]
+  positionAssignments PositionAssignment[]
+  programsAsPic       Program[]            @relation("ProgramPic")
+
+  @@index([deletedAt])
+  @@index([angkatan, graduationYear])
+  @@index([university])
+  @@index([isDirectoryVisible])
+  /// Relasi avatar selalu di-`select` bersama baris anggota.
+  @@index([avatarFileId])
+  @@map("members")
+}
+
+/// Riwayat keanggotaan. Satu anggota bisa punya lebih dari satu baris
+/// (mis. PENDAFTARAN → AKTIF, atau re-aktivasi setelah KELUAR).
+/// Baris ini yang membuat transisi ANGGOTA → LULUS → ALUMNI
+/// dapat terjadi tanpa menghapus data.
+model Membership {
+  id        String               @id @default(cuid())
+  memberId  String               @map("member_id")
+  member    Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status    MembershipStatus     @default(PENDAFTARAN)
+  /// Tahun angkatan. Bersama memberId membentuk unik → mencegah duplikasi.
+  cohort    Int                  @db.SmallInt
+  startDate DateTime             @map("start_date") @db.Date
+  endDate   DateTime?            @map("end_date") @db.Date
+  endReason MembershipEndReason? @map("end_reason")
+  notes     String?              @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([memberId, cohort])
+  @@index([status])
+  @@index([cohort])
+  @@map("memberships")
+}
+
+// -----------------------------------------------------------------------------
+// STRUKTUR KEPENGGURUSAN
+// -----------------------------------------------------------------------------
+
+/// Periode kepengurusan, mis. "Periode 2025/2026".
+model OrganizationTerm {
+  id        String   @id @default(cuid())
+  name      String   @unique @db.VarChar(64)
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isCurrent Boolean  @default(false) @map("is_current")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  assignments PositionAssignment[]
+
+  @@index([isCurrent])
+  @@map("organization_terms")
+}
+
+/// Posisi/jabatan dalam struktur. Hierarkis lewat parentId (Ketua → Divisi).
+model OrganizationPosition {
+  id          String        @id @default(cuid())
+  code        String        @unique @db.VarChar(64)
+  name        String        @db.VarChar(191)
+  level       PositionLevel
+  description String?       @db.Text
+  sortOrder   Int           @default(0) @map("sort_order")
+  isActive    Boolean       @default(true) @map("is_active")
+
+  parentId String?                @map("parent_id")
+  parent   OrganizationPosition?  @relation("PositionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children OrganizationPosition[] @relation("PositionTree")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  assignments PositionAssignment[]
+
+  @@index([level, sortOrder])
+  @@index([parentId])
+  @@map("organization_positions")
+}
+
+/// Pengisi jabatan pada suatu periode. Memisahkan "apa jabatan" dari "siapa
+/// pemegang" sehingga riwayat kepengurusan tersimpan rapi.
+model PositionAssignment {
+  id         String               @id @default(cuid())
+  positionId String               @map("position_id")
+  position   OrganizationPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  memberId   String               @map("member_id")
+  member     Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  termId String?           @map("term_id")
+  term   OrganizationTerm? @relation(fields: [termId], references: [id], onDelete: SetNull)
+
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  isCurrent Boolean   @default(false) @map("is_current")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // CATATAN: kolom `userId` versi lama sudah DIHAPUS. Relasi ke user bukan
+  // data yang dipakai sistem; keanggotaan selalu diturunkan lewat
+  // `member -> user`. Dua jalur ke user hanya berisiko tidak konsisten.
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@index([positionId, isCurrent])
+  @@index([memberId])
+  @@index([termId])
+  @@map("position_assignments")
+}
+
+// -----------------------------------------------------------------------------
+// KONTEN STATIS (CMS sederhana)
+// -----------------------------------------------------------------------------
+
+/// Konten yang diedit melalui dashboard: sejarah, visi, misi, nilai, identitas,
+/// informasi keanggotaan. Satu baris = satu blok konten.
+model OrganizationContent {
+  id      String      @id @default(cuid())
+  key     String      @unique @db.VarChar(64)
+  kind    ContentKind
+  title   String      @db.VarChar(191)
+  body    String      @db.LongText
+  /// Versi berurutan untuk riwayat perubahan konten.
+  version Int         @default(1)
+
+  isPublished Boolean   @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedById String?  @map("updated_by_id")
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([kind, isPublished])
+  @@map("organization_contents")
+}
+
+// -----------------------------------------------------------------------------
+// KONTEN PUBLIK
+// -----------------------------------------------------------------------------
+// Entitas konten yang dibaca layer publik. Semuanya soft delete (`deletedAt`)
+// dan hanya menampilkan baris berstatus terbit. Rancangan di
+// docs/database-design.md § 4.1 — 4.5.
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProgramStatus {
+  DRAFT
+  DIRANCANG
+  BERJALAN
+  SELESAI
+  DIBATALKAN
+}
+
+enum EventStatus {
+  DRAFT
+  TERJADWAL
+  BERLANGSUNG
+  SELESAI
+  DIBATALKAN
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  PENTING
+  MENDESAK
+}
+
+enum AnnouncementAudience {
+  PUBLIC
+  ANGGOTA
+  ALUMNI
+  PENGURUS
+}
+
+/// Kategori berita. Dipisah agar satu berita hanya punya satu kategori dan
+/// filter tidak bergantung pada teks bebas.
+model NewsCategory {
+  id          String  @id @default(cuid())
+  slug        String  @unique @db.VarChar(191)
+  name        String  @db.VarChar(191)
+  description String? @db.VarChar(255)
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  news News[]
+
+  @@map("news_categories")
+}
+
+/// Berita. `body` disimpan sebagai Markdown polos: paragraf dipisahkan satu
+/// baris kosong, baris `- ` menjadi butir daftar. Tidak ada HTML mentah, jadi
+/// tidak ada permukaan XSS dari konten pengguna.
+model News {
+  id      String @id @default(cuid())
+  slug    String @unique @db.VarChar(191)
+  title   String @db.VarChar(191)
+  excerpt String @db.VarChar(255)
+  body    String @db.LongText
+
+  /// Token warna untuk cover placeholder (`brand`, `terra`, `info`, `success`).
+  /// Yang disimpan hanya tokennya; kelas Tailwind dipetakan di service layer
+  /// supaya kelas tidak pernah masuk ke database.
+  coverAccent String @default("brand") @map("cover_accent") @db.VarChar(32)
+
+  coverFileId String? @map("cover_file_id")
+  coverFile   File?   @relation("NewsCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+
+  /// Nama penulis yang tampil di publik, mis. "Sekretariat KPMBR-YK". Dipisah dari
+  /// `authorId` supaya berita tetap memiliki penulis meski akun pengedit
+  /// belum dibuat.
+  authorName String  @default("Sekretariat KPMBR-YK") @map("author_name") @db.VarChar(191)
+  authorId   String? @map("author_id")
+  author     User?   @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  categoryId String?       @map("category_id")
+  category   NewsCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  status      NewsStatus @default(DRAFT)
+  isFeatured  Boolean    @default(false) @map("is_featured")
+  publishedAt DateTime?  @map("published_at")
+  viewCount   Int        @default(0) @map("view_count")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([status, publishedAt])
+  @@index([categoryId, publishedAt])
+  /// Query "berita oleh penulis" memakai kolom ini.
+  @@index([authorId])
+  @@index([deletedAt])
+  @@map("news")
+}
+
+/// Agenda kegiatan. RSVP/pendaftaran tidak dibuat pada tahap awal.
+model Event {
+  id          String    @id @default(cuid())
+  slug        String    @unique @db.VarChar(191)
+  title       String    @db.VarChar(191)
+  description String    @db.Text
+  startsAt    DateTime  @map("starts_at")
+  endsAt      DateTime? @map("ends_at")
+  location    String    @db.VarChar(191)
+  organizer   String    @db.VarChar(191)
+
+  status EventStatus @default(DRAFT)
+
+  coverFileId String? @map("cover_file_id")
+  coverFile   File?   @relation("EventCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([startsAt, status])
+  @@index([deletedAt])
+  @@map("events")
+}
+
+/// Program kerja. `progress` hanya boleh 0/25/50/75/100 — ditegakkan di
+/// service layer (bukan CHECK constraint) agar pesan error ramah.
+model Program {
+  id          String @id @default(cuid())
+  slug        String @unique @db.VarChar(191)
+  name        String @db.VarChar(191)
+  description String @db.Text
+  objective   String @db.Text
+
+  /// Nama divisi PENANGGUNG JAWAB, disimpan sebagai teks karena divisi adalah
+  /// label organisasi, bukan entitas yang perlu di-query terpisah.
+  divisionName String @map("division_name") @db.VarChar(191)
+
+  picMemberId String? @map("pic_member_id")
+  picMember   Member? @relation("ProgramPic", fields: [picMemberId], references: [id], onDelete: SetNull)
+
+  status   ProgramStatus @default(DRAFT)
+  progress Int           @default(0)
+
+  startDate DateTime? @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+
+  coverFileId String? @map("cover_file_id")
+  coverFile   File?   @relation("ProgramCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  updates ProgramUpdate[]
+
+  @@index([status, divisionName])
+  /// Query "program dengan PIC tertentu" memakai kolom ini.
+  @@index([picMemberId])
+  @@index([deletedAt])
+  @@map("programs")
+}
+
+/// Riwayat progres program. Menyimpan jejak perubahan, bukan hanya nilai
+/// terakhir, sehingga progres dapat ditelusuri ke belakang.
+model ProgramUpdate {
+  id        String  @id @default(cuid())
+  programId String  @map("program_id")
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  progress  Int
+  note      String? @db.Text
+
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("ProgramUpdateAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([programId, createdAt])
+  @@map("program_updates")
+}
+
+/// Album dokumentasi kegiatan.
+model DocumentationAlbum {
+  id          String   @id @default(cuid())
+  slug        String   @unique @db.VarChar(191)
+  title       String   @db.VarChar(191)
+  description String?  @db.Text
+  eventDate   DateTime @map("event_date") @db.Date
+  accent      String   @default("brand") @db.VarChar(32)
+
+  coverFileId String? @map("cover_file_id")
+  coverFile   File?   @relation("AlbumCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+
+  /// Cache jumlah item untuk list album. Sumber kebenaran tetap
+  /// `documentation_items`; kolom ini diperbarui saat item ditambah/dihapus.
+  photoCount Int @default(0) @map("photo_count")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  items DocumentationItem[]
+
+  @@index([eventDate])
+  @@index([deletedAt])
+  @@map("documentation_albums")
+}
+
+/// Satu foto di dalam album. `fileId` RESTRICT: metadata file tidak boleh
+/// hilang padahal album masih menunjukinya.
+model DocumentationItem {
+  id        String             @id @default(cuid())
+  albumId   String             @map("album_id")
+  album     DocumentationAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  fileId    String             @map("file_id")
+  file      File               @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  caption   String?            @db.VarChar(255)
+  sortOrder Int                @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([albumId, sortOrder])
+  @@index([fileId])
+  @@map("documentation_items")
+}
+
+/// Pengumuman singkat. `audience` menentukan siapa boleh membaca. Penegakan
+/// di server saat query, bukan lewat Sembunyikan di frontend.
+model Announcement {
+  id       String               @id @default(cuid())
+  title    String               @db.VarChar(191)
+  body     String               @db.LongText
+  priority AnnouncementPriority @default(NORMAL)
+  audience AnnouncementAudience @default(PUBLIC)
+
+  publishedAt DateTime  @default(now()) @map("published_at")
+  expiresAt   DateTime? @map("expires_at")
+
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("AnnouncementAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([audience, publishedAt])
+  @@index([deletedAt])
+  @@map("announcements")
+}
+
+// -----------------------------------------------------------------------------
+// FILE (metadata saja — binary di Cloudflare R2)
+// -----------------------------------------------------------------------------
+
+/// Metadata file. Binary TIDAK disimpan di MySQL.
+/// `storageKey` adalah kunci objek di R2; `fileUrl` disimpan untuk aset publik.
+/// Akses file restricted WAJIB lewat route server yang memeriksa RBAC.
+model File {
+  id          String          @id @default(cuid())
+  storageKey  String          @unique @map("storage_key") @db.VarChar(255)
+  fileName    String          @map("file_name") @db.VarChar(255)
+  mimeType    String          @map("mime_type") @db.VarChar(191)
+  /// Ukuran dalam BYTE.
+  size        Int
+  width       Int?
+  height      Int?
+  kind        FileKind        @default(OTHER)
+  accessLevel FileAccessLevel @default(MEMBER_ONLY) @map("access_level")
+  checksum    String?         @db.VarChar(64)
+  altText     String?         @map("alt_text") @db.VarChar(255)
+
+  uploadedById String? @map("uploaded_by_id")
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  memberAvatars Member[]             @relation("MemberAvatar")
+  newsCovers    News[]               @relation("NewsCover")
+  eventCovers   Event[]              @relation("EventCover")
+  programCovers Program[]            @relation("ProgramCover")
+  albumCovers   DocumentationAlbum[] @relation("AlbumCover")
+
+  documentationItems DocumentationItem[]
+
+  @@index([kind, accessLevel])
+  /// Query galeri "file yang diunggah user ini".
+  @@index([uploadedById])
+  @@index([deletedAt])
+  @@map("files")
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG
+// -----------------------------------------------------------------------------
+
+/// Jejak audit. Append-only. actorId nullable karena aksi dapat dilakukan oleh
+/// sistem (mis. scheduled job) atau akun yang dihapus.
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?     @map("actor_id")
+  actor      User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     AuditAction
+  /// Nama resource logis, mis. "News", "Membership", "File".
+  resource   String      @db.VarChar(64)
+  resourceId String?     @map("resource_id") @db.VarChar(64)
+  /// Detail tambahan (JSON): field yang berubah, nilai lama/baru, alasan, dsb.
+  /// JANGAN pernah menyimpan password, token, atau secret di sini.
+  metadata   Json?
+  ipAddress  String?     @map("ip_address") @db.VarChar(45)
+  userAgent  String?     @map("user_agent") @db.VarChar(255)
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@index([actorId, createdAt])
+  @@index([resource, resourceId])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
