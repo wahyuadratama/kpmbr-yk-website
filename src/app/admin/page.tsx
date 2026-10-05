@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireSessionPage } from "@/lib/auth/guards";
+import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db/prisma";
 import { isLocked } from "@/lib/auth/lockout";
@@ -18,9 +18,13 @@ export const dynamic = "force-dynamic";
 /**
  * Dasbor minimal untuk MEMBUKTIKAN bahwa kontrol akses bekerja.
  * Fokus tahap ini backend, jadi UI sengaja dibuat Functional, bukan cantik.
+ *
+ * Guard di sini sengaja diulang meski `layout.tsx` sudah menjaganya: kalau
+ * suatu saat halaman ini dipindahkan keluar dari layout, perlindungannya tetap
+ * utuh.
  */
 export default async function AdminPage() {
-  const principal = await requireSessionPage("/admin");
+  const principal = await requirePortalPage("/admin");
 
   const canSeeAudit = hasPermission(principal.role, "audit_log:read");
   const canManageUsers = hasPermission(principal.role, "user:read");

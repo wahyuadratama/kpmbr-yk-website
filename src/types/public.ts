@@ -28,6 +28,13 @@ export type NewsArticle = {
   publishedAt: string;
   readingMinutes: number;
   coverGradient: string;
+  /**
+   * URL absolut cover bila sudah ada file publiknya.
+   * `null` berarti belum ada aset — pemakai harus render `coverGradient`.
+   */
+  coverImageUrl: string | null;
+  /** Alt text cover; kosong berarti dekoratif. */
+  coverImageAlt: string;
   isFeatured: boolean;
 };
 

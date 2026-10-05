@@ -16,9 +16,10 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+// `forbidden()` milik Next.js menghasilkan status HTTP 403 sungguhan lewat
+// `forbidden.tsx`; versi lokal di `@/lib/errors` hanya untuk route handler.
+import { forbidden as nextForbidden } from "next/navigation";
 import { auth } from "@/auth";
-import { db } from "@/lib/db/prisma";
-import { UserStatus } from "@/generated/prisma/enums";
 import {
   canAccess,
   hasPermission,
@@ -26,50 +27,22 @@ import {
   type Permission,
   type Role,
 } from "@/lib/auth/permissions";
+import { canEnterPortal, DASHBOARD_BY_ROLE } from "@/lib/auth/portals";
+import { readPrincipal, type Principal } from "@/lib/auth/principal";
 import { forbidden, notFound, unauthorized } from "@/lib/errors";
 
-export type Principal = {
-  userId: string;
-  email: string;
-  role: Role;
-  status: UserStatus;
-  /** `member.id` milik user ini, atau null bila akun belum punya profil. */
-  memberId: string | null;
-};
+export type { Principal };
 
 /**
  * Baca identitas pemanggil dari database.
  *
  * `cache()` memastikan satu render hanya query sekali. `auth()` membaca
- * cookie JWT; role TIDAK diambil dari sana melainkan dari baris `users`.
+ * cookie JWT; role TIDAK diambil dari sana melainkan dari baris `users`
+ * (lihat `readPrincipal` di `src/lib/auth/principal.ts`).
  */
 export const getCurrentPrincipal = cache(async (): Promise<Principal | null> => {
   const session = await auth();
-  const id = session?.user?.id;
-  if (!id) return null;
-
-  const user = await db.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      status: true,
-      deletedAt: true,
-      member: { select: { id: true } },
-    },
-  });
-
-  // Akun dihapus (soft), dinonaktifkan, atau tidak ada → tidak ada akses.
-  if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE) return null;
-
-  return {
-    userId: user.id,
-    email: user.email,
-    role: user.role as Role,
-    status: user.status,
-    memberId: user.member?.id ?? null,
-  };
+  return readPrincipal(session?.user?.id);
 });
 
 /**
@@ -87,6 +60,38 @@ export async function requireSessionPage(nextPath = "/admin"): Promise<Principal
   const principal = await getCurrentPrincipal();
   if (principal) return principal;
   redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+}
+
+/**
+ * Wajib punya role dari daftar yang diizinkan — versi Server Component.
+ *
+ * Tanpa sesi → redirect ke `/login`. Salah role → HTTP 403 sungguhan
+ * (`forbidden.tsx`), bukan 500 dan bukan halaman kosong. Penolakan dicatat di
+ * `audit_logs` sebagai `VIEW_SENSITIVE` dengan `denied: true`.
+ */
+export async function requireRolePage(allowed: Role[], nextPath?: string): Promise<Principal> {
+  const principal = await requireSessionPage(nextPath ?? DASHBOARD_BY_ROLE[allowed[0] ?? "ANGGOTA"]);
+  if (!allowed.includes(principal.role)) {
+    await recordDenied(principal, "portal", allowed.join(","));
+    // next/navigation#forbidden -> merender app/forbidden.tsx dengan status 403.
+    nextForbidden();
+  }
+  return principal;
+}
+
+/**
+ * Wajib punya izin masuk ke portal pada `path`.
+ *
+ * Pemeriksaan memakai peta role dari `src/lib/auth/portals.ts`, sehingga layout
+ * `/admin`, `/pengurus`, `/member`, dan `/alumni` memakai definisi yang sama.
+ */
+export async function requirePortalPage(path: string): Promise<Principal> {
+  const principal = await requireSessionPage(path);
+  if (!canEnterPortal(path, principal.role)) {
+    await recordDenied(principal, "portal", path);
+    nextForbidden();
+  }
+  return principal;
 }
 
 /**

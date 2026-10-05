@@ -10,9 +10,10 @@
  *   tidak pernah menyentuh bentuk row Prisma.
  */
 import { unstable_cache } from "next/cache";
-import { NewsStatus } from "@/generated/prisma/enums";
+import { FileAccessLevel, NewsStatus } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
 import { parseParagraphs } from "@/lib/content/markdown";
+import { publicAssetUrl } from "@/lib/files/public-url";
 import type { NewsArticle } from "@/types/public";
 
 /**
@@ -49,6 +50,11 @@ type NewsRow = {
   excerpt: string;
   body: string;
   coverAccent: string;
+  coverFile: {
+    storageKey: string;
+    accessLevel: FileAccessLevel;
+    altText: string | null;
+  } | null;
   authorName: string;
   publishedAt: Date | null;
   isFeatured: boolean;
@@ -56,6 +62,7 @@ type NewsRow = {
 };
 
 export function toNewsArticle(row: NewsRow): NewsArticle {
+  const coverImageUrl = publicAssetUrl(row.coverFile);
   return {
     slug: row.slug,
     title: row.title,
@@ -67,6 +74,10 @@ export function toNewsArticle(row: NewsRow): NewsArticle {
     publishedAt: (row.publishedAt ?? new Date(0)).toISOString(),
     readingMinutes: readingMinutes(row.body),
     coverGradient: NEWS_ACCENT[row.coverAccent] ?? ACCENT_DEFAULT,
+    // Cover yang tidak publik (atau belum ada URLnya) TIDAK pernah bocor ke
+    // halaman publik: pemanggil jatuh ke gradient accent.
+    coverImageUrl,
+    coverImageAlt: coverImageUrl ? (row.coverFile?.altText ?? "") : "",
     isFeatured: row.isFeatured,
   };
 }
@@ -77,6 +88,9 @@ const SELECT = {
   excerpt: true,
   body: true,
   coverAccent: true,
+  coverFile: {
+    select: { storageKey: true, accessLevel: true, altText: true },
+  },
   authorName: true,
   publishedAt: true,
   isFeatured: true,

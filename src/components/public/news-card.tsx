@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +15,38 @@ type NewsCardProps = {
 };
 
 /**
- * Kartu berita.
+ * Cover berita.
  *
- * Cover memakai blok warna (gradient token) sebagai pengganti foto karena
- * aset foto belum tersedia. Saat aset R2 siap, ganti isi `coverSlot` dengan
- * `next/image` tanpa mengubah struktur kartu.
+ * Memakai `next/image` bila database sudah menautkan file publiknya; selama
+ * belum ada, slot ini diisi gradient token (`coverAccent`) supaya tata letak
+ * tidak bergeser. Keduanya memakai kotak yang sama, jadi kartu tidak melompat
+ * ketika fotonya diunggah kemudian.
  */
+function NewsCover({
+  article,
+  className,
+  sizes,
+}: {
+  article: NewsArticle;
+  className?: string;
+  sizes: string;
+}) {
+  if (article.coverImageUrl) {
+    return (
+      <Image
+        src={article.coverImageUrl}
+        alt={article.coverImageAlt}
+        fill
+        sizes={sizes}
+        className={cn("object-cover", className)}
+      />
+    );
+  }
+  return (
+    <div aria-hidden="true" className={cn("bg-gradient-to-br", article.coverGradient, className)} />
+  );
+}
+
 export function NewsCard({
   article,
   variant = "default",
@@ -33,13 +60,9 @@ export function NewsCard({
           className,
         )}
       >
-        <div
-          aria-hidden="true"
-          className={cn(
-            "hidden size-20 shrink-0 rounded-md bg-gradient-to-br sm:block",
-            article.coverGradient,
-          )}
-        />
+        <div className="hidden size-20 shrink-0 overflow-hidden rounded-md sm:block">
+          <NewsCover article={article} className="size-full" sizes="80px" />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">
             {article.category} · {formatTanggal(article.publishedAt)}
@@ -67,13 +90,13 @@ export function NewsCard({
         className,
       )}
     >
-      <div
-        aria-hidden="true"
-        className={cn(
-          "aspect-[16/9] w-full bg-gradient-to-br",
-          article.coverGradient,
-        )}
-      />
+      <div className="relative aspect-[16/9] w-full overflow-hidden">
+        <NewsCover
+          article={article}
+          className="size-full"
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        />
+      </div>
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-center gap-2">
           <Badge
@@ -111,9 +134,4 @@ export function NewsCard({
       </div>
     </article>
   );
-}
-
-/** Slot cover yang akan diganti `<Image>` saat aset foto tersedia. */
-export function NewsCoverSlot({ className }: { className?: string }) {
-  return <div aria-hidden="true" className={cn("bg-muted", className)} />;
 }

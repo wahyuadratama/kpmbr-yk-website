@@ -182,16 +182,36 @@ Santai. Hanya transisi yang informatif:
 
 ## 11. Identitas Visual
 
-Logo dan symbol belum ditentukan organisasi. Selama belum ada keputusan,
-dipakai lockup teks:
+Logo resmi sudah dipakai. Berkas sumber adalah
+`src/assets/kpmbr-logo-source.png` (PNG dengan latar transparan). Semua varian
+diturunkan dari berkas itu oleh `npm run assets:brand`
+(`scripts/build-brand-assets.ts`) — jangan mengedit hasil turunannya langsung.
 
 ```text
-KPMBR-YK
-Keluarga Pelajar dan Mahasiswa Bandung Raya Yogyakarta
+src/assets/kpmbr-logo-source.png   500x500   sumber, hanya boleh diganti
+src/assets/kpmbr-logo.png          192px     navbar & footer
+src/app/icon.png                   256px     favicon
+src/app/apple-icon.png             180px     ikon iOS (spesifikasi Apple)
 ```
 
-**`REQUIRES DECISION`** — perlu file logo (SVG/PNG) dan aturan
-penggunaannya dari organisasi sebelum aset brand dibuat.
+Aturan penggunaan:
+
+- Lockup dipakai lewat komponen `Brand` (`src/components/layout/brand.tsx`).
+  Jangan menulis `<Image>` logo langsung di halaman atau komponen lain.
+- `variant="full"` untuk header/footer (logo + nama), `variant="mark"` untuk
+  panel sempit seperti menu mobile.
+- Logo bersifat dekoratif: `alt=""`. Nama organisasi diambil dari `aria-label`
+  pada link, bukan dari teks alternatif gambar.
+- Wajib menyertakan `sizes` pada `next/image`. Tanpa itu Next mengira lebar
+  gambar 100vw dan mengunduh varian yang jauh lebih besar dari kebutuhan.
+- Logo maupun hasil turunannya tidak boleh diberi `favicon.ico`. Next.js akan
+  mengutamakan `favicon.ico` dan mengabaikan `src/app/icon.png`.
+- Latar transparan dipertahankan; jangan menambahkan kotak putih di belakang
+  logo.
+
+Variabel warna yang dipakai logo (biru-kuning) tidak sama dengan token `brand`
+di stylesheet. Itu tidak masalah: token adalah warna antarmuka, logo adalah
+aset organisasi yang tidak diwarnai ulang.
 
 ## 12. Penggunaan Token di Tailwind
 

@@ -34,8 +34,9 @@ Status: `IMPLEMENTED` (menunggu data nyata untuk `TESTED`)
 [x] Halaman keanggotaan + kontak
 [x] generateMetadata per halaman + JSON-LD
 [x] sitemap.xml + robots.ts (dari database)
-[ ] Optimasi gambar (next/image, R2)
-[~] ISR untuk halaman yang jarang berubah
+[x] Optimasi gambar: pipeline aset brand + remotePatterns R2 + next/image
+[x] ISR untuk halaman yang jarang berubah
+[x] Favicon & logo resmi (lihat docs/design-system.md § 11)
 ```
 
 Catatan implementasi:
@@ -56,34 +57,84 @@ Catatan implementasi:
   tidak tersebar.
 - `MockDataNotice` masih dipakai. Hapus komponen ini beserta data seed setelah
   organisasi menyediakan data asli.
+- Driver R2 untuk unggah file **belum** diimplementasikan (masih penyimpanan
+  lokal di `.data/uploads`). Yang selesai di tahap ini adalah sisi Consumption:
+  `next.config.ts` mengizinkan host dari `R2_PUBLIC_URL`, dan cover berita
+  memakai `next/image` bila `coverFile` sudah tertaut dan ber-`accessLevel =
+  PUBLIC`. Tanpa URL itu komponen jatuh ke gradient accent, bukan error.
+- `publicAssetUrl()` hanya menghasilkan URL untuk aset `PUBLIC`. Aset
+  `MEMBER_ONLY`/`PENGURUS_ONLY`/`ADMIN_ONLY` tidak pernah mendapat URL;
+  pemanggilnya memakai `/api/files/[id]`.
 
 Keluar dari stage: seluruh website publik terbaca dari database, bukan mock.
 
 ## Stage 2 — Autentikasi & RBAC
 
-Status: `PLANNED` — **butuh keputusan `REQUIRES DECISION` §8.1 lebih dulu**
+Status: `TESTED`
 
 ```text
-[ ] AUTH_SECRET di-generate, .env terisi
-[ ] Auth.js terpasang (atau Better Auth, sesuai keputusan)
-[ ] Halaman /login
-[ ] Login + logout + session database
-[ ] Account lockout (failed_login_attempts, locked_until)
-[ ] Rate limiting per IP
-[ ] requireSession() / requireRole() / requirePermission() di src/lib/auth/
-[ ] Route terlindungi: /admin /pengurus /member /alumni
-[ ] Audit log untuk LOGIN, LOGIN_FAILED, LOGOUT, ROLE_CHANGE
-[ ] Seeder: 1 akun ADMIN
+[x] AUTH_SECRET di-generate, .env terisi
+[x] Auth.js v5 terpasang (credentials)
+[x] Halaman /login
+[x] Login + logout + session JWT (sub = user id saja)
+[x] Account lockout (failed_login_attempts, locked_until)
+[x] Rate limiting per IP + per email
+[x] requireSession() / requireRole() / requirePermission() di src/lib/auth/
+[x] Route terlindungi: /admin /pengurus /member /alumni
+[x] Audit log untuk LOGIN, LOGIN_FAILED, LOGOUT, VIEW_SENSITIVE
+[x] Seeder: 4 akun dev (admin, pengurus, anggota, alumni)
+[x] Halaman 403 (`src/app/forbidden.tsx`) via `authInterrupts`
+[x] Redirect login mengikuti role (`src/lib/auth/portals.ts`)
+[x] Tes otorisasi: npm run test:auth (92 assertion)
 ```
 
 ### Definition of Done
 
-- [ ] Menolak akses langsung ke `/admin` tanpa login (401/redirect).
-- [ ] Menolak `/admin` untuk role ANGGOTA (403).
-- [ ] Role dari form/query **tidak** berpengaruh pada otorisasi.
-- [ ] Menonaktifkan akun langsung mencabut sesi.
-- [ ] Setiap mutasi tercatat di `audit_logs`.
-- [ ] Test: 6 skenario otorisasi di atas lulus.
+- [x] Menolak akses langsung ke `/admin` tanpa login (307 → `/login`).
+- [x] Menolak `/admin` untuk role ANGGOTA (403).
+- [x] Role dari form/query **tidak** berpengaruh pada otorisasi.
+- [x] Menonaktifkan akun langsung mencabut sesi.
+- [x] Setiap mutasi tercatat di `audit_logs`.
+- [x] Test: 6 skenario otorisasi di atas lulus.
+
+### Bug yang ditemukan dan diperbaiki saat Stage 2 diverifikasi
+
+Login **tidak pernah berhasil** sejak pertama kali ditulis, meski cookie sesi
+terbit. Dua sebabnya, keduanya soal cara Auth.js v5 dipakai:
+
+1. `signIn(..., { redirect: false })` mengembalikan **string URL redirect**,
+   bukan objek `{ ok }`. Kode lama membaca `result.ok` yang selalu
+   `undefined`, sehingga login sukses tetap dianggap gagal.
+2. `auth()` **tidak bisa** dipakai mengecek hasil login di server action yang
+   sama. `signIn()` menulis cookie lewat `cookies().set()`; cookie itu baru
+   berlaku pada request berikutnya, jadi `auth()` membaca cookie lama dan
+   selalu melihat sesi kosong.
+
+Perbaikannya: kriteria sukses adalah `signIn()` tidak melempar (Auth.js melempar
+`CredentialsSignin`/`AccessDenied` saat kredensial ditolak), dan role dibaca
+langsung dari baris `users`. Password tidak diverifikasi dua kali.
+
+Bug ini tidak ditemukan oleh `npm run check` maupun `db:smoke` — keduanya tidak
+menyentuh alur login. Hanya berbahaya ketika alur itu benar-benar dijalankan
+lewat peramban.
+
+### Catatan arsitektur
+
+- `src/lib/auth/portals.ts` adalah satu-satunya sumber pemetaan role ↔ portal.
+  Layout `/admin`, `/pengurus`, `/member`, `/alumni`, redirect setelah login,
+  dan tes semuanya membaca peta yang sama.
+- Pembacaan identitas dipisah ke `src/lib/auth/principal.ts` **tanpa**
+  `server-only`, supaya logika otorisasi bisa diuji tanpa HTTP server.
+- `requirePortalPage()` memakai `forbidden()` dari `next/navigation` dengan
+  `experimental.authInterrupts`, sehingga penolakan benar-benar berstatus 403 —
+  bukan 500 dan bukan redirect yang menyamar.
+
+### Yang belum diuji otomatis
+
+Kode status HTTP hasil render (403 dari `forbidden.tsx`, redirect ke `/login`)
+diverifikasi manual lewat peramban, belum jadi tes otomatis. Alasannya: butuh
+server berjalan, cookie sesi asli, dan peramban. Bila mulai ada dialog
+pengguna, tambahkan di Stage 8 bersama pagination.
 
 ## Stage 3 — Portal Anggota & Pengurus
 

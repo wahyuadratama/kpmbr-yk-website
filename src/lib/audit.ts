@@ -8,7 +8,7 @@
  * - `append-only`. Tidak ada fungsi update/delete di modul ini.
  * - Nilai sensitif (password, token, secret) DIBUANG sebelum ditulis.
  * - Kegagalan menulis audit tidak boleh membatalkan aksi bisnis? Untuk aksi
- *   destruktifkita pilih fail-closed: error dilempar. `required: false`
+ *   destruktif kita memilih fail-closed: error dilempar. `required: false`
  *   dipakai hanya untuk telemetry (mis. VIEW pada halaman publik).
  */
 import { db } from "@/lib/db/prisma";

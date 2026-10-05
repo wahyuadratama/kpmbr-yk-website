@@ -1,31 +1,43 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { requireSessionPage } from "@/lib/auth/guards";
+import { requirePortalPage } from "@/lib/auth/guards";
 import { permissionsFor } from "@/lib/auth/permissions";
 import { siteConfig } from "@/lib/site-config";
 import { logoutAction } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/kpmbr-logo.png";
 
 /**
  * Layout area privat.
  *
- * `requireSessionPage()` membungkus seluruh subtree: tanpa sesi valid, tidak
- * ada satu pun halaman di bawah layout ini yang dirender. Ini pemeriksaan
+ * `requirePortalPage("/admin")` membungkus seluruh subtree: tanpa sesi valid
+ * pengunjung ke `/login`, dan role selain ADMIN mendapat HTTP 403. Keduanya
  * DI SERVER, bukan sekadar menyembunyikan menu.
  */
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const principal = await requireSessionPage("/admin");
+  const principal = await requirePortalPage("/admin");
   const permissions = permissionsFor(principal.role);
 
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b bg-muted/30">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-          <Link href="/admin" className="font-semibold tracking-tight">
-            {siteConfig.name}
-            <span className="ml-2 text-xs font-normal text-muted-foreground">Portal</span>
+          <Link href="/admin" className="flex items-center gap-2.5 font-semibold tracking-tight">
+            <Image
+              src={logo}
+              alt=""
+              width={192}
+              height={192}
+              sizes="32px"
+              className="size-8 shrink-0"
+            />
+            <span>
+              {siteConfig.name}
+              <span className="ml-2 text-xs font-normal text-muted-foreground">Portal</span>
+            </span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/admin" className="hover:text-foreground">

@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
     "check:text": "tsx scripts/check-text.ts",
+    "assets:brand": "tsx scripts/build-brand-assets.ts",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:format": "prisma format",
@@ -19,6 +20,7 @@
     "db:status": "prisma migrate status",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:smoke": "tsx --env-file=.env scripts/db-smoke.ts",
+    "test:auth": "tsx --env-file=.env scripts/test-authorization.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
