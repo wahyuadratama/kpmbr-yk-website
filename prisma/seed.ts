@@ -25,6 +25,7 @@ import {
   AnnouncementPriority,
   ContentKind,
   EventStatus,
+  FinancialTransactionType,
   NewsStatus,
   ProgramStatus,
   PositionLevel,
@@ -332,6 +333,24 @@ async function seedAnnouncements(): Promise<number> {
   return ANNOUNCEMENTS.length;
 }
 
+async function seedFinancialCategories(): Promise<number> {
+  const categories = [
+    { slug: "iuran", name: "Iuran Anggota", type: FinancialTransactionType.INCOME },
+    { slug: "sponsor", name: "Sponsor / Donasi", type: FinancialTransactionType.INCOME },
+    { slug: "operasional", name: "Biaya Operasional", type: FinancialTransactionType.EXPENSE },
+    { slug: "acara", name: "Biaya Acara", type: FinancialTransactionType.EXPENSE },
+  ];
+
+  for (const item of categories) {
+    await db.financialCategory.upsert({
+      where: { slug: item.slug },
+      create: item,
+      update: { name: item.name, type: item.type },
+    });
+  }
+  return categories.length;
+}
+
 async function main(): Promise<void> {
   assertSeedAllowed();
 
@@ -344,6 +363,7 @@ async function main(): Promise<void> {
     ["Program kerja", await seedPrograms()],
     ["Album dokumentasi", await seedAlbums()],
     ["Pengumuman", await seedAnnouncements()],
+    ["Kategori keuangan", await seedFinancialCategories()],
   ];
 
   console.log(`\n=== Seed ${ORGANIZATION.shortName} (data contoh) ===\n`);

@@ -6,6 +6,18 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ArrowRight, Inbox } from "lucide-react";
 import { getFinancialSummary } from "@/modules/finance/queries";
 import { listFinancialTransactions } from "@/modules/finance/queries";
+import { listFinancialCategories } from "@/modules/finance/queries";
+import {
+  FinanceCategoryForm,
+  FinanceTransactionForm,
+} from "@/components/admin/finance-form";
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+};
 
 export const metadata: Metadata = { title: "Keuangan" };
 export const dynamic = "force-dynamic";
@@ -15,6 +27,7 @@ export default async function KeuanganPage() {
 
   const canReadSummary = hasPermission(principal.role, "finance:read_summary");
   const canReadTransaction = hasPermission(principal.role, "finance:read_transaction");
+  const canCreate = hasPermission(principal.role, "finance:create");
 
   const now = new Date();
   const summary = canReadSummary
@@ -24,6 +37,8 @@ export default async function KeuanganPage() {
   const transactions = canReadTransaction
     ? (await listFinancialTransactions({ size: 10 })).items
     : [];
+
+  const categories = canCreate ? await listFinancialCategories() : [];
 
   return (
     <div className="space-y-8">
@@ -73,6 +88,16 @@ export default async function KeuanganPage() {
               </div>
             </div>
           </section>
+
+          {canCreate && (
+            <section className="space-y-6">
+              <h2 className="text-lg font-semibold">Input Data</h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <FinanceCategoryForm />
+                <FinanceTransactionForm categories={categories as Category[]} />
+              </div>
+            </section>
+          )}
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Transaksi terbaru</h2>
