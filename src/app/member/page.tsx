@@ -5,6 +5,7 @@ import { db } from "@/lib/db/prisma";
 import { EventStatus } from "@/generated/prisma/enums";
 import { formatTanggalPendek } from "@/lib/utils/format";
 import { EmptyState } from "@/components/ui/empty-state";
+import ProfileForm from "@/components/member/profile-form";
 
 export const metadata: Metadata = {
   title: "Portal anggota",
@@ -14,10 +15,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Dasbor anggota — placeholder fungsional untuk Stage 3.
+ * Dasbor anggota — Stage 3.
  *
- * Yang diuji di halaman ini HANYA batas aksesnya: ANGGOTA, PENGURUS, dan ADMIN
- * boleh masuk, ALUMNI tidak. Profil saya dan kartu digital menyusul.
+ * Batas akses: ANGGOTA, PENGURUS, dan ADMIN boleh masuk, ALUMNI tidak.
+ * Saat profil tersedia, anggota dapat mengubah data sendiri (member:update,
+ * hanya record milik sendiri).
  */
 export default async function MemberPage() {
   const principal = await requirePortalPage("/member");
@@ -31,7 +33,26 @@ export default async function MemberPage() {
     })
     .catch(() => []);
 
-  const hasProfile = principal.memberId !== null;
+  const member = principal.memberId
+    ? await db.member
+        .findUnique({
+          where: { id: principal.memberId },
+          select: {
+            fullName: true,
+            nickname: true,
+            gender: true,
+            phone: true,
+            city: true,
+            bio: true,
+            addressDetail: true,
+            isDirectoryVisible: true,
+            memberCode: true,
+          },
+        })
+        .catch(() => null)
+    : null;
+
+  const hasProfile = !!member;
 
   return (
     <div className="space-y-10">
@@ -49,7 +70,34 @@ export default async function MemberPage() {
           description="Akun kamu sudah aktif, tetapi belum terhubung ke data anggota. Hubungi sekretariat untuk mengisi data keanggotaan."
           action={{ label: "Hubungi sekretariat", href: "/kontak" }}
         />
-      ) : null}
+      ) : (
+        <>
+          {member && (
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">Kartu anggota</h2>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Kode anggota
+                </p>
+                <p className="font-mono text-sm">{member.memberCode}</p>
+              </div>
+            </section>
+          )}
+
+          <ProfileForm
+            initial={{
+              fullName: member?.fullName ?? "",
+              nickname: member?.nickname ?? "",
+              gender: member?.gender ?? null,
+              phone: member?.phone ?? null,
+              city: member?.city ?? null,
+              bio: member?.bio ?? null,
+              addressDetail: member?.addressDetail ?? null,
+              isDirectoryVisible: member?.isDirectoryVisible ?? false,
+            }}
+          />
+        </>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Agenda terdekat</h2>

@@ -76,6 +76,7 @@ export const programCreateSchema = z.object({
   picMemberId: cuidSchema.nullish(),
   status: z.enum(ProgramStatus).default(ProgramStatus.DIRANCANG),
   progress: z
+    .coerce
     .number()
     .int("Progres harus bilangan bulat.")
     .refine((v) => PROGRESSION_STEPS.includes(v as (typeof PROGRESSION_STEPS)[number]), {

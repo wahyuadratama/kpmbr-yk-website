@@ -1,0 +1,304 @@
+/**
+ * Server action untuk modul keuangan.
+ *
+ * Prinsip:
+ * - Semua mutasi tercatat di `audit_logs` (CREATE / UPDATE / DELETE).
+ * - `amount` ditransformasi dari string ke `BigInt` oleh skema validasi,
+ *   tidak pernah Float.
+ * - `createdById` diambil dari session (principal), TIDAK dari input klien.
+ * - Cache tag `finance-*` di-invalidate setelah mutasi supaya dashboard
+ *   selalu menunjukkan saldo terbaru.
+ */
+import "server-only";
+import { updateTag } from "next/cache";
+import { z } from "zod";
+import { db } from "@/lib/db/prisma";
+import { requirePermission } from "@/lib/auth/guards";
+import { parseOrThrow } from "@/lib/validation/parse";
+import {
+  financialCategoryCreateSchema,
+  financialCategoryUpdateSchema,
+  financialTransactionCreateSchema,
+  financialTransactionUpdateSchema,
+  financialReportCreateSchema,
+} from "@/lib/validation/finance";
+import { cuidSchema } from "@/lib/validation/common";
+import { notFound } from "@/lib/errors";
+import { runAction, type ActionResult } from "@/lib/actions/result";
+import { writeAudit } from "@/lib/audit";
+import { AuditAction } from "@/generated/prisma/enums";
+import { FINANCE_TAGS } from "@/modules/finance/queries";
+
+const idSchema = z.object({ id: cuidSchema });
+
+function refreshCategoriesCache(): void {
+  updateTag(FINANCE_TAGS.categories);
+}
+function refreshTransactionsCache(): void {
+  updateTag(FINANCE_TAGS.transactions);
+}
+function refreshReportsCache(): void {
+  updateTag(FINANCE_TAGS.reports);
+}
+
+/* -------------------------------------------------------------------------- */
+/* KATEGORI                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export async function createFinancialCategoryAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  return runAction("financial-category.create", async () => {
+    const principal = await requirePermission("finance:create");
+    const input = parseOrThrow(financialCategoryCreateSchema, raw);
+
+    const created = await db.financialCategory.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+        type: input.type,
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.CREATE,
+      resource: "FinancialCategory",
+      resourceId: created.id,
+      actorUserId: principal.userId,
+      metadata: { name: input.name, slug: input.slug, type: input.type },
+    });
+
+    refreshCategoriesCache();
+    return created;
+  });
+}
+
+export async function updateFinancialCategoryAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const schema = financialCategoryUpdateSchema;
+  return runAction("financial-category.update", async () => {
+    const principal = await requirePermission("finance:create");
+    const input = parseOrThrow(schema, raw);
+
+    const existing = await db.financialCategory.findUnique({
+      where: { id: input.id },
+      select: { id: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Kategori tidak ditemukan.");
+
+    const updated = await db.financialCategory.update({
+      where: { id: existing.id },
+      data: {
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.slug !== undefined ? { slug: input.slug } : {}),
+        ...(input.type !== undefined ? { type: input.type } : {}),
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.UPDATE,
+      resource: "FinancialCategory",
+      resourceId: updated.id,
+      actorUserId: principal.userId,
+      metadata: { fields: Object.keys(input).filter((key) => key !== "id") },
+    });
+
+    refreshCategoriesCache();
+    return updated;
+  });
+}
+
+export async function deleteFinancialCategoryAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  return runAction("financial-category.delete", async () => {
+    const principal = await requirePermission("finance:delete");
+    const { id } = parseOrThrow(idSchema, raw);
+
+    const existing = await db.financialCategory.findUnique({
+      where: { id },
+      select: { id: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Kategori tidak ditemukan.");
+
+    const result = await db.financialCategory.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) throw notFound("Kategori tidak ditemukan.");
+
+    await writeAudit({
+      action: AuditAction.DELETE,
+      resource: "FinancialCategory",
+      resourceId: id,
+      actorUserId: principal.userId,
+      metadata: { softDelete: true },
+    });
+
+    refreshCategoriesCache();
+    return { id };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* TRANSAKSI                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function createFinancialTransactionAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  return runAction("financial-transaction.create", async () => {
+    const principal = await requirePermission("finance:create");
+    const input = parseOrThrow(financialTransactionCreateSchema, raw);
+
+    const created = await db.financialTransaction.create({
+      data: {
+        date: new Date(input.date),
+        amount: input.amount,
+        type: input.type,
+        categoryId: input.categoryId,
+        description: input.description ?? undefined,
+        proofFileId: input.proofFileId ?? undefined,
+        createdById: principal.userId,
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.CREATE,
+      resource: "FinancialTransaction",
+      resourceId: created.id,
+      actorUserId: principal.userId,
+      metadata: {
+        date: input.date,
+        amount: input.amount.toString(),
+        type: input.type,
+        categoryId: input.categoryId,
+      },
+    });
+
+    refreshTransactionsCache();
+    return created;
+  });
+}
+
+export async function updateFinancialTransactionAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const schema = financialTransactionUpdateSchema;
+  return runAction("financial-transaction.update", async () => {
+    const principal = await requirePermission("finance:create");
+    const input = parseOrThrow(schema, raw);
+
+    const existing = await db.financialTransaction.findUnique({
+      where: { id: input.id },
+      select: { id: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Transaksi tidak ditemukan.");
+
+    const updated = await db.financialTransaction.update({
+      where: { id: existing.id },
+      data: {
+        ...(input.date !== undefined ? { date: new Date(input.date) } : {}),
+        ...(input.amount !== undefined ? { amount: input.amount } : {}),
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
+        ...(input.description !== undefined ? { description: input.description } : {}),
+        ...(input.proofFileId !== undefined
+          ? { proofFileId: input.proofFileId }
+          : {}),
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.UPDATE,
+      resource: "FinancialTransaction",
+      resourceId: updated.id,
+      actorUserId: principal.userId,
+      metadata: {
+        fields: Object.keys(input).filter((key) => key !== "id"),
+        amount: input.amount?.toString(),
+      },
+    });
+
+    refreshTransactionsCache();
+    return updated;
+  });
+}
+
+export async function deleteFinancialTransactionAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  return runAction("financial-transaction.delete", async () => {
+    const principal = await requirePermission("finance:delete");
+    const { id } = parseOrThrow(idSchema, raw);
+
+    const existing = await db.financialTransaction.findUnique({
+      where: { id },
+      select: { id: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Transaksi tidak ditemukan.");
+
+    const result = await db.financialTransaction.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) throw notFound("Transaksi tidak ditemukan.");
+
+    await writeAudit({
+      action: AuditAction.DELETE,
+      resource: "FinancialTransaction",
+      resourceId: id,
+      actorUserId: principal.userId,
+      metadata: { softDelete: true },
+    });
+
+    refreshTransactionsCache();
+    return { id };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* LAPORAN                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export async function createFinancialReportAction(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  return runAction("financial-report.create", async () => {
+    const principal = await requirePermission("finance:create");
+    const input = parseOrThrow(financialReportCreateSchema, raw);
+
+    const created = await db.financialReport.create({
+      data: {
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth ?? null,
+        periodType: input.periodType,
+        visibility: input.visibility,
+        documentFileId: input.documentFileId ?? undefined,
+        createdById: principal.userId,
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.CREATE,
+      resource: "FinancialReport",
+      resourceId: created.id,
+      actorUserId: principal.userId,
+      metadata: {
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth ?? null,
+        periodType: input.periodType,
+        visibility: input.visibility,
+      },
+    });
+
+    refreshReportsCache();
+    return created;
+  });
+}

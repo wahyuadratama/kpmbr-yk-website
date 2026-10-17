@@ -1,0 +1,151 @@
+/**
+ * Server action CMS untuk program kerja.
+ */
+import "server-only";
+import { updateTag } from "next/cache";
+import { z } from "zod";
+import { db } from "@/lib/db/prisma";
+import { requirePermission } from "@/lib/auth/guards";
+import { parseOrThrow } from "@/lib/validation/parse";
+import { programCreateSchema } from "@/lib/validation/cms";
+import { cuidSchema } from "@/lib/validation/common";
+import { conflict, notFound } from "@/lib/errors";
+import { runAction, type ActionResult } from "@/lib/actions/result";
+import { writeAudit } from "@/lib/audit";
+import { AuditAction } from "@/generated/prisma/enums";
+
+const idSchema = z.object({ id: cuidSchema });
+
+function refreshProgramCache(): void {
+  updateTag("programs");
+}
+
+export async function createProgramAction(raw: unknown): Promise<ActionResult<{ id: string }>> {
+  return runAction("program.create", async () => {
+    const principal = await requirePermission("program:create");
+    const input = parseOrThrow(programCreateSchema, raw);
+
+    const slug = input.slug ?? (await slugifyUnique(input.name));
+
+    const created = await db.program.create({
+      data: {
+        name: input.name,
+        slug,
+        description: input.description,
+        objective: input.objective,
+        divisionName: input.divisionName,
+        picMemberId: input.picMemberId ?? null,
+        status: input.status,
+        progress: input.progress,
+        startDate: input.startDate ? new Date(input.startDate) : null,
+        endDate: input.endDate ? new Date(input.endDate) : null,
+      },
+      select: { id: true, slug: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.CREATE,
+      resource: "Program",
+      resourceId: created.id,
+      actorUserId: principal.userId,
+      metadata: { slug: created.slug, status: input.status, progress: input.progress },
+    });
+
+    refreshProgramCache();
+    return created;
+  });
+}
+
+export async function updateProgramAction(raw: unknown): Promise<ActionResult<{ id: string }>> {
+  const schema = programCreateSchema.partial().extend({ id: cuidSchema });
+  return runAction("program.update", async () => {
+    const principal = await requirePermission("program:update");
+    const input = parseOrThrow(schema, raw);
+
+    const existing = await db.program.findUnique({
+      where: { id: input.id },
+      select: { id: true, slug: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Program kerja tidak ditemukan.");
+
+    const updated = await db.program.update({
+      where: { id: existing.id },
+      data: {
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.slug !== undefined ? { slug: input.slug } : {}),
+        ...(input.description !== undefined ? { description: input.description } : {}),
+        ...(input.objective !== undefined ? { objective: input.objective } : {}),
+        ...(input.divisionName !== undefined ? { divisionName: input.divisionName } : {}),
+        ...(input.picMemberId !== undefined ? { picMemberId: input.picMemberId ?? null } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.progress !== undefined ? { progress: input.progress } : {}),
+        ...(input.startDate !== undefined
+          ? { startDate: input.startDate ? new Date(input.startDate) : null }
+          : {}),
+        ...(input.endDate !== undefined
+          ? { endDate: input.endDate ? new Date(input.endDate) : null }
+          : {}),
+      },
+      select: { id: true },
+    });
+
+    await writeAudit({
+      action: AuditAction.UPDATE,
+      resource: "Program",
+      resourceId: updated.id,
+      actorUserId: principal.userId,
+      metadata: { fields: Object.keys(input).filter((key) => key !== "id") },
+    });
+
+    refreshProgramCache();
+    return updated;
+  });
+}
+
+export async function deleteProgramAction(raw: unknown): Promise<ActionResult<{ id: string }>> {
+  return runAction("program.delete", async () => {
+    const principal = await requirePermission("program:delete");
+    const { id } = parseOrThrow(idSchema, raw);
+
+    const existing = await db.program.findUnique({
+      where: { id },
+      select: { id: true, deletedAt: true },
+    });
+    if (!existing || existing.deletedAt) throw notFound("Program kerja tidak ditemukan.");
+
+    const result = await db.program.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) throw notFound("Program kerja tidak ditemukan.");
+
+    await writeAudit({
+      action: AuditAction.DELETE,
+      resource: "Program",
+      resourceId: id,
+      actorUserId: principal.userId,
+      metadata: { softDelete: true },
+    });
+
+    refreshProgramCache();
+    return { id };
+  });
+}
+
+async function slugifyUnique(name: string): Promise<string> {
+  const root = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 90) || "program";
+
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
+    const clash = await db.program.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!clash) return candidate;
+  }
+  throw conflict("Tidak dapat membuat slug unik untuk program kerja ini.");
+}

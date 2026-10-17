@@ -109,3 +109,52 @@ export const getAlbumSlugs = unstable_cache(
   ["public", "albums", "slugs"],
   { revalidate: 3600, tags: ["documentation"] },
 );
+
+/** Album untuk dashboard pengurus/admin (dapatkan semua, dilengkapi pagination). */
+export async function listDocumentationAlbums({
+  page = 1,
+  size = 12,
+  q,
+}: { page?: number; size?: number; q?: string } = {}) {
+  const skip = (page - 1) * size;
+
+  const [items, total] = await Promise.all([
+    db.documentationAlbum.findMany({
+      where: {
+        deletedAt: null,
+        ...(q ? { title: { contains: q } } : {}),
+      },
+      orderBy: { eventDate: "desc" },
+      skip,
+      take: size,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        eventDate: true,
+        accent: true,
+        photoCount: true,
+        createdAt: true,
+        _count: { select: { items: true } },
+      },
+    }),
+    db.documentationAlbum.count({
+      where: {
+        deletedAt: null,
+        ...(q ? { title: { contains: q } } : {}),
+      },
+    }),
+  ]);
+
+  return {
+    items: items.map((item) => ({
+      ...item,
+      itemCount: item._count.items,
+    })),
+    total,
+    page,
+    size,
+    pages: Math.ceil(total / size),
+  };
+}

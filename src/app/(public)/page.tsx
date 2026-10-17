@@ -1,12 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  Images,
-  Target,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, Images, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { AlbumCard } from "@/components/public/album-card";
@@ -42,18 +36,27 @@ import { siteConfig } from "@/lib/site-config";
  * `src/modules/*`. Tidak ada data yang ditulis manual di komponen ini.
  */
 export default async function HomePage() {
-  const [featured, latestNews, upcomingEvents, featuredPrograms, recentAlbums, stats, visi, misi, nilai] =
-    await Promise.all([
-      getFeaturedNews(),
-      getPublishedNews(4),
-      getUpcomingEvents(3),
-      getPrograms(3),
-      getAlbums(3),
-      getOrganizationStats(),
-      getVisi(),
-      getMisi(),
-      getNilai(),
-    ]);
+  const [
+    featured,
+    latestNews,
+    upcomingEvents,
+    featuredPrograms,
+    recentAlbums,
+    stats,
+    visi,
+    misi,
+    nilai,
+  ] = await Promise.all([
+    getFeaturedNews(),
+    getPublishedNews(4),
+    getUpcomingEvents(3),
+    getPrograms(3),
+    getAlbums(3),
+    getOrganizationStats(),
+    getVisi(),
+    getMisi(),
+    getNilai(),
+  ]);
 
   // Berita utama tidak diulang di daftar pendek di sebelahnya.
   const otherNews = latestNews
@@ -241,7 +244,10 @@ export default async function HomePage() {
       </Section>
 
       {/* Dokumentasi. */}
-      <Section id="dokumentasi" className="border-b border-border bg-background">
+      <Section
+        id="dokumentasi"
+        className="border-b border-border bg-background"
+      >
         <SectionHeading
           eyebrow="Dokumentasi"
           title="Jejak kegiatan"
@@ -287,11 +293,13 @@ function Hero() {
             {siteConfig.fullName}
           </p>
           <h1 className="mt-3 text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl">
-            Keluarga yang menyatukan pelajar dan mahasiswa Yogyakarta Raya.
+            Ti Bandung Raya, Ngahiji di Yogyakarta.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            KPMBR-YK menghimpun pelajar dan mahasiswa dari berbagai perguruan tinggi
-            di Yogyakarta untuk bersatu, bekerja, dan menjalankan program yang menjawab persoalan nyata di kampus dan sekitarnya.
+            KPMBR-YK menjadi wadah kekeluargaan bagi pelajar dan mahasiswa asal
+            Bandung Raya di Yogyakarta untuk mempererat persaudaraan,
+            mengembangkan potensi, serta menjaga nilai dan budaya Sunda dalam
+            semangat kebersamaan dan pengabdian.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild size="lg" className="h-11 px-5">
@@ -365,16 +373,11 @@ function JoinCta() {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
             Keanggotaan KPMBR-YK terbuka untuk pelajar dan mahasiswa aktif pada
-            perguruan tinggi di wilayah Yogyakarta. Tidak ada biaya
-            pendaftaran. Pendaftaran dilakukan melalui Sekretariat.
+            perguruan tinggi di wilayah Yogyakarta. Tidak ada biaya pendaftaran.
+            Pendaftaran dilakukan melalui Sekretariat.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="h-11 px-5"
-            >
+            <Button asChild size="lg" variant="secondary" className="h-11 px-5">
               <Link href="/keanggotaan">
                 Lihat syarat dan alur pendaftaran
                 <ArrowRight aria-hidden="true" />

@@ -156,6 +156,9 @@ model User {
   newsAuthored         News[]                @relation("NewsAuthor")
   programUpdates       ProgramUpdate[]       @relation("ProgramUpdateAuthor")
   announcements        Announcement[]        @relation("AnnouncementAuthor")
+  digitalMemberCards   DigitalMemberCard[]
+  financialTransactions FinancialTransaction[] @relation("FinancialTransactionCreatedBy")
+  financialReports     FinancialReport[]     @relation("FinancialReportCreatedBy")
 
   @@index([role, status])
   @@index([deletedAt])
@@ -259,6 +262,7 @@ model Member {
   memberships         Membership[]
   positionAssignments PositionAssignment[]
   programsAsPic       Program[]            @relation("ProgramPic")
+  digitalMemberCards  DigitalMemberCard[]
 
   @@index([deletedAt])
   @@index([angkatan, graduationYear])
@@ -292,6 +296,35 @@ model Membership {
   @@index([status])
   @@index([cohort])
   @@map("memberships")
+}
+
+/// Kartu anggota digital. `tokenHash` adalah SHA-256 dari token opaque;
+/// token mentah TIDAK pernah disimpan di database.
+model DigitalMemberCard {
+  id       String @id @default(cuid())
+  memberId String @map("member_id")
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  /// Hash SHA-256 token verifikasi. Token mentah hanya ditampilkan sekali saat
+  /// pembuatan, lalu dibuang.
+  tokenHash String @unique @map("token_hash") @db.VarChar(64)
+
+  /// Kunci publik untuk QR / verifikasi cepat (bukan rahasia).
+  publicKey String @unique @map("public_key") @db.VarChar(191)
+
+  isActive    Boolean   @default(true) @map("is_active")
+  revokedAt   DateTime? @map("revoked_at")
+  revokedById String?   @map("revoked_by_id")
+  revokedBy   User?     @relation(fields: [revokedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([memberId])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("digital_member_cards")
 }
 
 // -----------------------------------------------------------------------------
@@ -652,6 +685,88 @@ model Announcement {
 }
 
 // -----------------------------------------------------------------------------
+// KEUANGAN
+// -----------------------------------------------------------------------------
+
+/// Jenis transaksi keuangan.
+enum FinancialTransactionType {
+  INCOME
+  EXPENSE
+}
+
+/// Tipe laporan keuangan.
+enum FinancialReportType {
+  MONTHLY
+  YEARLY
+}
+
+/// Kategori transaksi keuangan (Pemasukan / Pengeluaran).
+model FinancialCategory {
+  id     String   @id @default(cuid())
+  name   String   @unique @db.VarChar(191)
+  slug   String   @unique @db.VarChar(191)
+  type   FinancialTransactionType
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  transactions FinancialTransaction[]
+
+  @@index([type])
+  @@index([deletedAt])
+  @@map("financial_categories")
+}
+
+/// Satu transaksi keuangan. `amount` simpan rupiah penuh (BigInt), bukan Float.
+model FinancialTransaction {
+  id          String                 @id @default(cuid())
+  date        DateTime               @map("date")
+  amount      BigInt                 @db.BigInt
+  type        FinancialTransactionType
+  categoryId  String                 @map("category_id")
+  category    FinancialCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  description String?                @db.VarChar(255)
+  proofFileId String?                @map("proof_file_id")
+  proofFile   File?                  @relation("FinancialTransactionProofFile", fields: [proofFileId], references: [id], onDelete: SetNull)
+  createdById String?                @map("created_by_id")
+  createdBy   User?                  @relation("FinancialTransactionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([date, type])
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@map("financial_transactions")
+}
+
+/// Laporan keuangan agregat (bulanan / tahunan).
+model FinancialReport {
+  id           String               @id @default(cuid())
+  periodYear   Int                  @map("period_year")
+  periodMonth  Int?                 @map("period_month") @db.SmallInt
+  periodType   FinancialReportType
+  incomeTotal  BigInt               @default(0) @db.BigInt @map("income_total")
+  expenseTotal BigInt               @default(0) @db.BigInt @map("expense_total")
+  balance      BigInt               @default(0) @db.BigInt
+  visibility   FileAccessLevel      @default(MEMBER_ONLY) @map("visibility")
+  documentFileId String?           @map("document_file_id")
+  documentFile File?                @relation("FinancialReportDocumentFile", fields: [documentFileId], references: [id], onDelete: SetNull)
+  createdById  String?              @map("created_by_id")
+  createdBy    User?                @relation("FinancialReportCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([periodYear, periodMonth])
+  @@index([deletedAt])
+  @@map("financial_reports")
+}
+
+// -----------------------------------------------------------------------------
 // FILE (metadata saja — binary di Cloudflare R2)
 // -----------------------------------------------------------------------------
 
@@ -686,6 +801,9 @@ model File {
   albumCovers   DocumentationAlbum[] @relation("AlbumCover")
 
   documentationItems DocumentationItem[]
+
+  financialTransactions FinancialTransaction[] @relation("FinancialTransactionProofFile")
+  financialReports     FinancialReport[]       @relation("FinancialReportDocumentFile")
 
   @@index([kind, accessLevel])
   /// Query galeri "file yang diunggah user ini".

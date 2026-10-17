@@ -43,6 +43,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin" className="hover:text-foreground">
               Dasbor
             </Link>
+            <Link href="/admin/users" className="hover:text-foreground">
+              Pengguna
+            </Link>
+            <Link href="/admin/anggota" className="hover:text-foreground">
+              Anggota
+            </Link>
+            <Link href="/admin/alumni" className="hover:text-foreground">
+              Alumni
+            </Link>
+            <Link href="/admin/keuangan" className="hover:text-foreground">
+              Keuangan
+            </Link>
             <Link href="/" className="hover:text-foreground">
               Situs publik
             </Link>
