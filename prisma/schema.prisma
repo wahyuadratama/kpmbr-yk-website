@@ -94,6 +94,16 @@ enum FileKind {
   OTHER
 }
 
+/// Kategori dokumen arsip organisasi.
+enum DocumentCategory {
+  LPJ
+  PROPOSAL
+  SK
+  NOTULEN
+  AD_ART
+  LAINNYA
+}
+
 /// Jenis konten statis yang dikelola melalui CMS sederhana.
 enum ContentKind {
   SEJARAH
@@ -157,6 +167,7 @@ model User {
   programUpdates       ProgramUpdate[]       @relation("ProgramUpdateAuthor")
   announcements        Announcement[]        @relation("AnnouncementAuthor")
   digitalMemberCards   DigitalMemberCard[]
+  organizationDocuments OrganizationDocument[]
   financialTransactions FinancialTransaction[] @relation("FinancialTransactionCreatedBy")
   financialReports     FinancialReport[]     @relation("FinancialReportCreatedBy")
 
@@ -801,6 +812,7 @@ model File {
   albumCovers   DocumentationAlbum[] @relation("AlbumCover")
 
   documentationItems DocumentationItem[]
+  organizationDocuments OrganizationDocument[]
 
   financialTransactions FinancialTransaction[] @relation("FinancialTransactionProofFile")
   financialReports     FinancialReport[]       @relation("FinancialReportDocumentFile")
@@ -810,6 +822,31 @@ model File {
   @@index([uploadedById])
   @@index([deletedAt])
   @@map("files")
+}
+
+/// Arsip dokumen organisasi (LPJ, proposal, SK, notulen, AD/ART, dan lain-lain).
+/// Binary file disimpan di object storage; database hanya menyimpan metadata.
+model OrganizationDocument {
+  id          String           @id @default(cuid())
+  title       String           @db.VarChar(191)
+  slug        String           @unique @db.VarChar(191)
+  category    DocumentCategory
+  description String?          @db.Text
+  fileId      String           @map("file_id")
+  file        File             @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  accessLevel FileAccessLevel  @default(MEMBER_ONLY) @map("access_level")
+
+  uploadedById String?         @map("uploaded_by_id")
+  uploadedBy   User?           @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([category])
+  @@index([accessLevel])
+  @@index([deletedAt])
+  @@map("organization_documents")
 }
 
 // -----------------------------------------------------------------------------

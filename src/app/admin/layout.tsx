@@ -55,6 +55,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin/keuangan" className="hover:text-foreground">
               Keuangan
             </Link>
+            <Link href="/admin/arsip" className="hover:text-foreground">
+              Arsip
+            </Link>
+            <Link href="/admin/audit-log" className="hover:text-foreground">
+              Log Audit
+            </Link>
             <Link href="/" className="hover:text-foreground">
               Situs publik
             </Link>
