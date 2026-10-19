@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentPrincipal } from "@/lib/auth/guards";
 import { siteConfig } from "@/lib/site-config";
 import { LoginForm } from "./login-form";
@@ -29,44 +30,70 @@ export default async function LoginPage({
   const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/admin";
 
   return (
-    <main className="flex min-h-dvh w-full flex-col items-center justify-center bg-background px-4 py-12">
-      <section className="flex w-full flex-col items-center justify-center gap-6 max-w-sm">
-        <div className="flex items-center gap-2">
+    <main className="flex min-h-dvh w-full bg-background">
+      {/* Kolom identitas — hanya ditampilkan pada desktop */}
+      <div className="hidden lg:flex lg:w-[42%] flex-col justify-center border-r border-brand/10 bg-brand/5 p-8">
+        <div className="flex items-center gap-2 mb-6">
           <Image
             src={logo}
             alt="Logo KPMBR-YK"
-            width={40}
-            height={40}
+            width={48}
+            height={48}
             className="shrink-0"
           />
-          <span className="font-semibold text-lg tracking-tight text-foreground">
-            {siteConfig.name}
+          <span className="font-semibold text-2xl tracking-tight text-foreground">
+            KPMBR-YK
           </span>
         </div>
-
-        <header className="space-y-1 text-center">
-          <p className="text-sm font-medium text-muted-foreground">
-            Portal anggota dan pengurus
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Masuk ke akun Anda
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {siteConfig.displayName}
-          </p>
-        </header>
-
-        <LoginForm next={target} />
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          <Link
-            href="/"
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Kembali ke beranda
-          </Link>
+        <p className="text-sm font-medium text-brand-muted-foreground mb-4">
+          Portal anggota dan pengurus
         </p>
-      </section>
+        <p className="text-base text-muted-foreground leading-relaxed max-w-xs">
+          Keluarga Pelajar dan Mahasiswa Bandung Raya Yogyakarta
+        </p>
+      </div>
+
+      {/* Kolom autentikasi */}
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Identitas disederhanakan pada mobile */}
+          <div className="lg:hidden flex items-center gap-2 mb-6">
+            <Image
+              src={logo}
+              alt="Logo KPMBR-YK"
+              width={32}
+              height={32}
+              className="shrink-0"
+            />
+            <span className="font-semibold text-lg tracking-tight text-foreground">
+              KPMBR-YK
+            </span>
+          </div>
+
+          <Card>
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
+                Masuk ke akun Anda
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Masuk ke portal anggota dan pengurus KPMBR-YK.
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <LoginForm next={target} />
+            </CardContent>
+          </Card>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            <Link
+              href="/"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Kembali ke beranda
+            </Link>
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
