@@ -8,20 +8,47 @@
  *
  * Data sensitif (HP, email, alamat) TIDAK ditampilkan publik.
  */
+import * as React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { z } from "zod";
+import { Users } from "lucide-react";
 import { db } from "@/lib/db/prisma";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { EmptyState, NoResultsState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+/**
+ * Angka opsional.
+ *
+ * `z.coerce.number()` mengubah string kosong menjadi `0`, sehingga `?angkatan=`
+ * akan menyaringursed angkatan 0 dan membuat halaman kosong tanpa alasan.
+ * String kosong diubah menjadi `undefined` sebelum dikonversi.
+ */
+const optionalNumber = z.preprocess(
+  (value) =>
+    value === "" || value === null || value === undefined ? undefined : value,
+  z.coerce.number().int().optional().nullable(),
+);
 
 const filterSchema = z.object({
   q: z.string().trim().optional(),
-  angkatan: z.coerce.number().int().optional().nullable(),
+  angkatan: optionalNumber,
   universitas: z.string().trim().optional().nullable(),
   prodi: z.string().trim().optional().nullable(),
-  tahunLulus: z.coerce.number().int().optional().nullable(),
+  tahunLulus: optionalNumber,
 });
+
+/** Batas baris per halaman. */
+const PAGE_SIZE = 24;
 
 export const metadata: Metadata = {
   title: "Direktori Alumni",
+  description:
+    "Direktori anggota KPMBR-YK yang telah lulus dan memilih menampilkannya di direktori publik.",
+  alternates: { canonical: "/alumni-direktori" },
 };
 
 export default async function AlumniDirectoryPage({
@@ -32,6 +59,9 @@ export default async function AlumniDirectoryPage({
   const raw = await searchParams;
   const parsed = filterSchema.safeParse(raw);
   const f = parsed.success ? parsed.data : {};
+  const hasFilter = Boolean(
+    f.q || f.angkatan || f.universitas || f.prodi || f.tahunLulus,
+  );
 
   const where: Record<string, unknown> = {
     deletedAt: null,
@@ -55,8 +85,8 @@ export default async function AlumniDirectoryPage({
   const [members, total] = await Promise.all([
     db.member.findMany({
       where,
-      orderBy: { fullName: "asc" },
-      take: 50,
+      orderBy: [{ angkatan: "desc" }, { fullName: "asc" }],
+      take: PAGE_SIZE,
       select: {
         memberCode: true,
         fullName: true,
@@ -72,115 +102,176 @@ export default async function AlumniDirectoryPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Direktori Alumni</h1>
-        <p className="text-sm text-muted-foreground">
-          Data lulusan yang Izin ditampilkan dalam direktori publik. Nomor HP
-          dan email tidak tampil di sini.
-        </p>
-      </section>
+    <>
+      <PageHeader
+        eyebrow="Alumni"
+        title="Direktori Alumni"
+        description="Anggota yang telah lulus dan memilih menampilkan datanya di direktori publik. Nomor telepon dan email tidak ditampilkan di sini."
+      />
 
-      <section className="rounded-lg border p-4">
-        <form className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground block">Cari nama</label>
-              <input
+      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <section
+          aria-label="Saring direktori alumni"
+          className="rounded-lg border border-border bg-card p-5"
+        >
+          <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="space-y-2">
+              <Label htmlFor="q">Cari nama</Label>
+              <Input
+                id="q"
                 name="q"
+                className="h-10"
                 defaultValue={f.q ?? ""}
-                className="input input-sm w-full"
+                placeholder="Nama anggota"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground block">Angkatan</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="angkatan">Angkatan</Label>
+              <Input
+                id="angkatan"
                 name="angkatan"
+                className="h-10"
                 type="number"
+                inputMode="numeric"
                 defaultValue={f.angkatan?.toString() ?? ""}
-                className="input input-sm w-full"
+                placeholder="2024"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground block">Universitas</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="universitas">Universitas</Label>
+              <Input
+                id="universitas"
                 name="universitas"
+                className="h-10"
                 defaultValue={f.universitas ?? ""}
-                className="input input-sm w-full"
+                placeholder="Nama kampus"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground block">Prodi</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="prodi">Prodi</Label>
+              <Input
+                id="prodi"
                 name="prodi"
+                className="h-10"
                 defaultValue={f.prodi ?? ""}
-                className="input input-sm w-full"
+                placeholder="Program studi"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground block">Tahun lulus</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="tahunLulus">Tahun lulus</Label>
+              <Input
+                id="tahunLulus"
                 name="tahunLulus"
+                className="h-10"
                 type="number"
+                inputMode="numeric"
                 defaultValue={f.tahunLulus?.toString() ?? ""}
-                className="input input-sm w-full"
+                placeholder="2024"
               />
             </div>
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="btn btn-sm"
-              >
-                Terapkan
-              </button>
-            </div>
-          </div>
-        </form>
-      </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Daftar Alumni ({total})</h2>
-        {members.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Tidak ada data alumni yang cocok dengan filter.
-          </p>
-        ) : (
-          <ul className="divide-y rounded-lg border">
-            {members.map((m) => (
-              <li key={m.memberCode} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1">
-                  <p className="font-medium">{m.fullName}</p>
-                  {m.nickname && (
-                    <p className="text-xs text-muted-foreground">
-                      “{m.nickname}”
-                    </p>
-                  )}
-                </div>
-                <div className="hidden sm:flex flex-col gap-1 text-sm">
-                  {m.angkatan && (
-                    <span className="text-muted-foreground">Angkatan {m.angkatan}</span>
-                  )}
-                  {m.university && (
-                    <span className="text-muted-foreground">{m.university}</span>
-                  )}
-                  {m.studyProgram && (
-                    <span className="text-muted-foreground">{m.studyProgram}</span>
-                  )}
-                  {m.graduationYear && (
-                    <span className="text-muted-foreground">
-                      Lulus {m.graduationYear}
-                    </span>
-                  )}
-                  {m.city && <span className="text-muted-foreground">{m.city}</span>}
-                </div>
-                <div className="text-right text-xs font-mono text-muted-foreground">
-                  {m.memberCode}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-5">
+              <Button type="submit" size="lg" className="h-10">
+                Terapkan
+              </Button>
+              {hasFilter ? (
+                <Button asChild variant="outline" size="lg" className="h-10">
+                  <Link href="/alumni-direktori">Reset filter</Link>
+                </Button>
+              ) : null}
+            </div>
+          </form>
+        </section>
+
+        <section aria-labelledby="daftar-alumni" className="mt-10">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="daftar-alumni" className="text-lg font-semibold tracking-tight">
+              Daftar alumni
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {total > 0
+                ? `Menampilkan ${members.length} dari ${total} anggota`
+                : "Belum ada anggota yang ditampilkan"}
+            </p>
+          </div>
+
+          {members.length === 0 ? (
+            hasFilter ? (
+              <NoResultsState query={f.q} />
+            ) : (
+              <EmptyState
+                icon={Users}
+                title="Belum ada data alumni"
+                description="Direktori terisi setelah anggota yang telah lulus memilih menampilkannya di pengaturan profilnya."
+                className="mt-8"
+              />
+            )
+          ) : (
+            <>
+              <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {members.map((member) => (
+                  <li
+                    key={member.memberCode}
+                    className="rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium tracking-tight truncate">
+                          {member.fullName}
+                        </p>
+                        {member.nickname ? (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {member.nickname}
+                          </p>
+                        ) : null}
+                      </div>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {member.memberCode}
+                      </span>
+                    </div>
+
+                    <dl className="mt-3 flex flex-col gap-1 text-sm text-muted-foreground">
+                      {member.angkatan ? (
+                        <div className="flex gap-1.5">
+                          <dt className="sr-only">Angkatan</dt>
+                          <dd>Angkatan {member.angkatan}</dd>
+                        </div>
+                      ) : null}
+                      {member.university ? (
+                        <div className="flex gap-1.5">
+                          <dt className="sr-only">Perguruan tinggi</dt>
+                          <dd className="min-w-0 truncate">{member.university}</dd>
+                        </div>
+                      ) : null}
+                      {member.studyProgram ? (
+                        <div className="flex gap-1.5">
+                          <dt className="sr-only">Program studi</dt>
+                          <dd className="min-w-0 truncate">
+                            {member.studyProgram}
+                          </dd>
+                        </div>
+                      ) : null}
+                      {member.graduationYear ? (
+                        <div className="flex gap-1.5">
+                          <dt className="sr-only">Tahun lulus</dt>
+                          <dd>Lulus {member.graduationYear}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+
+              {total > members.length ? (
+                <p className="mt-6 text-sm text-muted-foreground">
+                  Menampilkan {members.length} anggota pertama. Gunakan filter
+                  untuk mempersempit pencarian.
+                </p>
+              ) : null}
+            </>
+          )}
+        </section>
+      </div>
+    </>
   );
 }
