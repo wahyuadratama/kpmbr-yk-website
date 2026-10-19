@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
     "check:text": "tsx scripts/check-text.ts",
+    "check:nav": "tsx scripts/check-nav-links.ts",
     "assets:brand": "tsx scripts/build-brand-assets.ts",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",

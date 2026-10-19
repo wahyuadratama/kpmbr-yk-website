@@ -120,8 +120,15 @@ export default async function TentangPage() {
               </dl>
             </div>
 
-            <div className="mt-6 rounded-lg border border-border bg-card p-5">
-              <h2 className="text-sm font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+            <section
+              id="nilai"
+              aria-labelledby="nilai-judul"
+              className="mt-6 rounded-lg border border-border bg-card p-5"
+            >
+              <h2
+                id="nilai-judul"
+                className="text-sm font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+              >
                 Nilai organisasi
               </h2>
               <dl className="mt-4 flex flex-col gap-4">
@@ -134,7 +141,7 @@ export default async function TentangPage() {
                   </div>
                 ))}
               </dl>
-            </div>
+            </section>
           </aside>
         </div>
 

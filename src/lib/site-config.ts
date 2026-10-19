@@ -60,31 +60,19 @@ export type NavItem = {
   description?: string;
 };
 
-/** Navigasi utama website publik. */
-export const mainNav: NavItem[] = [
-  { title: "Beranda", href: "/" },
-  {
-    title: "Tentang",
-    href: "/tentang",
-    description: "Sejarah, visi, misi, dan nilai organisasi",
-  },
-  { title: "Kepengurusan", href: "/kepengurusan" },
-  { title: "Program Kerja", href: "/proker" },
-  { title: "Agenda", href: "/agenda" },
-  { title: "Dokumentasi", href: "/dokumentasi" },
-  { title: "Berita", href: "/berita" },
-  { title: "Keanggotaan", href: "/keanggotaan" },
-  { title: "Kontak", href: "/kontak" },
-];
-
-/** Navigasi footer — dikelompokkan agar tidak menjadi daftar panjang. */
+/**
+ * Navigasi footer — dikelompokkan agar tidak menjadi daftar panjang.
+ *
+ * Menu navbar utama TIDAK ada di sini. Sumber kebenaran navigasi navbar
+ * adalah `src/lib/navigation.ts`.
+ */
 export const footerNav: { title: string; items: NavItem[] }[] = [
   {
     title: "Organisasi",
     items: [
       { title: "Tentang KPMBR-YK", href: "/tentang" },
-      { title: "Sejarah", href: "/tentang/sejarah" },
-      { title: "Visi & Misi", href: "/tentang/visi-misi" },
+      { title: "Sejarah", href: "/tentang#sejarah" },
+      { title: "Visi & Misi", href: "/tentang#visi" },
       { title: "Kepengurusan", href: "/kepengurusan" },
     ],
   },

@@ -2,7 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
-import { mainNav } from "@/lib/site-config";
+import { flattenNavLinks, publicNav } from "@/lib/navigation";
 
 export const metadata: Metadata = {
   title: "Halaman tidak ditemukan",
@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 
 /** 404 untuk seluruh situs. */
 export default function NotFound() {
+  // Semua tautan navbar diratakan supaya pengunjung 404 tetap punya jalan
+  // menuju halaman yang benar-benar ada.
+  const suggestions = flattenNavLinks(publicNav).slice(1, 8);
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 py-20 text-center sm:px-6 sm:py-28">
       <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -38,7 +42,7 @@ export default function NotFound() {
           Mungkin kamu mencari
         </p>
         <ul className="mt-4 flex flex-wrap justify-center gap-2">
-          {mainNav.slice(1, 7).map((item) => (
+          {suggestions.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
