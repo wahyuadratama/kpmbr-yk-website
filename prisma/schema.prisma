@@ -875,3 +875,20 @@ model AuditLog {
   @@index([action, createdAt])
   @@map("audit_logs")
 }
+
+/// Bucket rate limiting berbasis database.
+/// Diganti in-memory Map di `src/lib/rate-limit.ts` agar state tidak hilang
+/// saat restart dan dapat dibagi antar instance (jika diperlukan di depan).
+model RateLimitBucket {
+  id        String   @id @default(cuid()) @map("id")
+  key       String   @unique @db.VarChar(191)
+  count     Int      @default(0)
+  resetAt   DateTime @map("reset_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@index([resetAt])
+  @@map("rate_limit_buckets")
+}

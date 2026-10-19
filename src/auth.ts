@@ -21,7 +21,7 @@ import { z } from "zod";
 import { db } from "@/lib/db/prisma";
 import { verifyPassword, fakeVerifyDelay } from "@/lib/auth/password";
 import { isLocked, registerFailedLogin, clearFailedLogins } from "@/lib/auth/lockout";
-import { checkLoginRateLimit } from "@/lib/rate-limit";
+import { consumeDbRateLimit } from "@/lib/rate-limit-db";
 import { clientIpFrom, writeAudit } from "@/lib/audit";
 import { AuditAction, UserStatus } from "@/generated/prisma/enums";
 
@@ -57,8 +57,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { email, password } = parsed.data;
 
         const ip = clientIpFrom(new Headers(request?.headers ?? new Headers()));
-        const limit = checkLoginRateLimit(ip, email);
-        if (!limit.allowed) {
+        const ipLimit = await consumeDbRateLimit(`login:ip:${ip ?? "unknown"}`, 10, 15 * 60_000);
+        const emailLimit = await consumeDbRateLimit(`login:email:${email.trim().toLowerCase()}`, 5, 15 * 60_000);
+        if (!ipLimit.allowed || !emailLimit.allowed) {
           await writeAudit({
             action: AuditAction.LOGIN_FAILED,
             resource: "Auth",

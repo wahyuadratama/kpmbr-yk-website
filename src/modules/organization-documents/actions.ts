@@ -40,17 +40,19 @@ export async function createOrganizationDocumentAction(
     const principal = await requirePermission("document:create");
     const input = parseOrThrow(organizationDocumentCreateSchema, raw);
 
-    const created = await db.organizationDocument.create({
-      data: {
-        title: input.title,
-        slug: input.slug,
-        category: input.category,
-        description: input.description ?? undefined,
-        fileId: input.fileId,
-        accessLevel: input.accessLevel,
-        uploadedById: principal.userId,
-      },
-      select: { id: true },
+    const created = await db.$transaction(async (tx) => {
+      return tx.organizationDocument.create({
+        data: {
+          title: input.title,
+          slug: input.slug,
+          category: input.category,
+          description: input.description ?? undefined,
+          fileId: input.fileId,
+          accessLevel: input.accessLevel,
+          uploadedById: principal.userId,
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -98,12 +100,14 @@ export async function updateOrganizationDocumentAction(
     if (input.fileId !== undefined) data.fileId = input.fileId;
     if (input.accessLevel !== undefined) data.accessLevel = input.accessLevel;
 
-    const updated = await db.organizationDocument.update({
-      where: { id: existing.id },
-      data: data as unknown as Parameters<
-        typeof db.organizationDocument.update
-      >[0]["data"],
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      return tx.organizationDocument.update({
+        where: { id: existing.id },
+        data: data as unknown as Parameters<
+          typeof tx.organizationDocument.update
+        >[0]["data"],
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -136,9 +140,11 @@ export async function deleteOrganizationDocumentAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Dokumen tidak ditemukan.");
 
-    const result = await db.organizationDocument.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.organizationDocument.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Dokumen tidak ditemukan.");
 

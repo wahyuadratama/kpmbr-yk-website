@@ -4,7 +4,7 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
+import { db, Prisma } from "@/lib/db/prisma";
 import { requirePermission } from "@/lib/auth/guards";
 import { parseOrThrow } from "@/lib/validation/parse";
 import { eventCreateSchema } from "@/lib/validation/cms";
@@ -20,26 +20,52 @@ function refreshEventCache(): void {
   updateTag("events");
 }
 
+/** Buat slug unik untuk agenda (dipakai dalam transaksi). */
+async function buildEventSlug(tx: Prisma.TransactionClient, base: string): Promise<string> {
+  const root = base
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 90) || "agenda";
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
+    const clash = await tx.event.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!clash) return candidate;
+  }
+  throw conflict("Tidak dapat membuat slug unik untuk agenda ini.");
+}
+
 export async function createEventAction(raw: unknown): Promise<ActionResult<{ id: string }>> {
   return runAction("event.create", async () => {
     const principal = await requirePermission("event:create");
     const input = parseOrThrow(eventCreateSchema, raw);
 
-    const slug =
-      input.slug ?? (await slugifyUnique(input.title));
+    const created = await db.$transaction(async (tx) => {
+      const slug = input.slug ?? (await buildEventSlug(tx, input.title));
+      if (input.slug) {
+        const clash = await tx.event.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai agenda lain.`);
+      }
 
-    const created = await db.event.create({
-      data: {
-        title: input.title,
-        slug,
-        description: input.description,
-        startsAt: new Date(input.startsAt),
-        endsAt: input.endsAt ? new Date(input.endsAt) : null,
-        location: input.location,
-        organizer: input.organizer,
-        status: input.status,
-      },
-      select: { id: true, slug: true },
+      return tx.event.create({
+        data: {
+          title: input.title,
+          slug,
+          description: input.description,
+          startsAt: new Date(input.startsAt),
+          endsAt: input.endsAt ? new Date(input.endsAt) : null,
+          location: input.location,
+          organizer: input.organizer,
+          status: input.status,
+        },
+        select: { id: true, slug: true },
+      });
     });
 
     await writeAudit({
@@ -67,21 +93,33 @@ export async function updateEventAction(raw: unknown): Promise<ActionResult<{ id
     });
     if (!existing || existing.deletedAt) throw notFound("Agenda tidak ditemukan.");
 
-    const updated = await db.event.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.startsAt !== undefined ? { startsAt: new Date(input.startsAt) } : {}),
-        ...(input.endsAt !== undefined
-          ? { endsAt: input.endsAt ? new Date(input.endsAt) : null }
-          : {}),
-        ...(input.location !== undefined ? { location: input.location } : {}),
-        ...(input.organizer !== undefined ? { organizer: input.organizer } : {}),
-        ...(input.status !== undefined ? { status: input.status } : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      let slug = existing.slug;
+      if (input.slug !== undefined && input.slug !== existing.slug) {
+        const clash = await tx.event.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai agenda lain.`);
+        slug = input.slug;
+      }
+
+      return tx.event.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.title !== undefined ? { title: input.title } : {}),
+          ...(slug !== existing.slug ? { slug } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.startsAt !== undefined ? { startsAt: new Date(input.startsAt) } : {}),
+          ...(input.endsAt !== undefined
+            ? { endsAt: input.endsAt ? new Date(input.endsAt) : null }
+            : {}),
+          ...(input.location !== undefined ? { location: input.location } : {}),
+          ...(input.organizer !== undefined ? { organizer: input.organizer } : {}),
+          ...(input.status !== undefined ? { status: input.status } : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -108,9 +146,11 @@ export async function deleteEventAction(raw: unknown): Promise<ActionResult<{ id
     });
     if (!existing || existing.deletedAt) throw notFound("Agenda tidak ditemukan.");
 
-    const result = await db.event.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.event.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Agenda tidak ditemukan.");
 
@@ -125,22 +165,4 @@ export async function deleteEventAction(raw: unknown): Promise<ActionResult<{ id
     refreshEventCache();
     return { id };
   });
-}
-
-async function slugifyUnique(title: string): Promise<string> {
-  const root = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 90) || "agenda";
-
-  for (let suffix = 1; suffix <= 100; suffix += 1) {
-    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
-    const clash = await db.event.findUnique({
-      where: { slug: candidate },
-      select: { id: true },
-    });
-    if (!clash) return candidate;
-  }
-  throw conflict("Tidak dapat membuat slug unik untuk agenda ini.");
 }

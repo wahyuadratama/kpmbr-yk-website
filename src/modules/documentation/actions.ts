@@ -4,7 +4,7 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
+import { db, Prisma } from "@/lib/db/prisma";
 import { requirePermission } from "@/lib/auth/guards";
 import { parseOrThrow } from "@/lib/validation/parse";
 import { cuidSchema, shortText } from "@/lib/validation/common";
@@ -28,6 +28,24 @@ function refreshDocCache(): void {
   updateTag("documentation");
 }
 
+/** Buat slug unik untuk album dokumentasi (dipakai dalam transaksi). */
+async function buildAlbumSlug(tx: Prisma.TransactionClient, base: string): Promise<string> {
+  const root = base
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 90) || "album";
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
+    const clash = await tx.documentationAlbum.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!clash) return candidate;
+  }
+  throw conflict("Tidak dapat membuat slug unik untuk album ini.");
+}
+
 export async function createDocumentationAlbumAction(
   raw: unknown,
 ): Promise<ActionResult<{ id: string }>> {
@@ -35,18 +53,26 @@ export async function createDocumentationAlbumAction(
     const principal = await requirePermission("documentation:create");
     const input = parseOrThrow(albumCreateSchema, raw);
 
-    const slug =
-      input.slug ?? (await slugifyUnique(input.title));
+    const created = await db.$transaction(async (tx) => {
+      const slug = input.slug ?? (await buildAlbumSlug(tx, input.title));
+      if (input.slug) {
+        const clash = await tx.documentationAlbum.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai album lain.`);
+      }
 
-    const created = await db.documentationAlbum.create({
-      data: {
-        title: input.title,
-        slug,
-        description: input.description || null,
-        eventDate: new Date(input.eventDate),
-        accent: input.accent,
-      },
-      select: { id: true, slug: true },
+      return tx.documentationAlbum.create({
+        data: {
+          title: input.title,
+          slug,
+          description: input.description || null,
+          eventDate: new Date(input.eventDate),
+          accent: input.accent,
+        },
+        select: { id: true, slug: true },
+      });
     });
 
     await writeAudit({
@@ -76,16 +102,28 @@ export async function updateDocumentationAlbumAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Album tidak ditemukan.");
 
-    const updated = await db.documentationAlbum.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.description !== undefined ? { description: input.description ?? null } : {}),
-        ...(input.eventDate !== undefined ? { eventDate: new Date(input.eventDate) } : {}),
-        ...(input.accent !== undefined ? { accent: input.accent } : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      let slug = existing.slug;
+      if (input.slug !== undefined && input.slug !== existing.slug) {
+        const clash = await tx.documentationAlbum.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai album lain.`);
+        slug = input.slug;
+      }
+
+      return tx.documentationAlbum.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.title !== undefined ? { title: input.title } : {}),
+          ...(slug !== existing.slug ? { slug } : {}),
+          ...(input.description !== undefined ? { description: input.description ?? null } : {}),
+          ...(input.eventDate !== undefined ? { eventDate: new Date(input.eventDate) } : {}),
+          ...(input.accent !== undefined ? { accent: input.accent } : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -114,9 +152,11 @@ export async function deleteDocumentationAlbumAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Album tidak ditemukan.");
 
-    const result = await db.documentationAlbum.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.documentationAlbum.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Album tidak ditemukan.");
 
@@ -131,22 +171,4 @@ export async function deleteDocumentationAlbumAction(
     refreshDocCache();
     return { id };
   });
-}
-
-async function slugifyUnique(title: string): Promise<string> {
-  const root = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 90) || "album";
-
-  for (let suffix = 1; suffix <= 100; suffix += 1) {
-    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
-    const clash = await db.documentationAlbum.findUnique({
-      where: { slug: candidate },
-      select: { id: true },
-    });
-    if (!clash) return candidate;
-  }
-  throw conflict("Tidak dapat membuat slug unik untuk album ini.");
 }

@@ -12,6 +12,7 @@ import { getCurrentPrincipal } from "@/lib/auth/guards";
 import { authorizeFileAccess, contentDisposition } from "@/lib/files/access";
 import { readFile } from "@/lib/storage";
 import { clientIpFrom, writeAudit } from "@/lib/audit";
+import { consumeDbRateLimit } from "@/lib/rate-limit-db";
 import { AuditAction } from "@/generated/prisma/enums";
 import { logSafe, publicMessage } from "@/lib/errors";
 
@@ -25,6 +26,18 @@ export async function GET(
   try {
     const principal = await getCurrentPrincipal();
     const { id } = await context.params;
+
+    // Rate limit unduhan per IP (dan per user bila login) untuk mencegah
+    // scraping atau unduhan berlebihan.
+    const ip = clientIpFrom(request.headers);
+    const dlKey = `download:ip:${ip ?? "unknown"}`;
+    const dlLimit = await consumeDbRateLimit(dlKey, 60, 15 * 60_000);
+    if (!dlLimit.allowed) {
+      return NextResponse.json(
+        { error: { code: "RATE_LIMITED", message: "Terlalu banyak unduhan. Coba lagi nanti." } },
+        { status: 429 },
+      );
+    }
 
     // ID dari URL bukan tepercaya; tetap batasi bentuknya agar tidak
     // membanjiri query dengan string bebas.

@@ -52,13 +52,15 @@ export async function createFinancialCategoryAction(
     const principal = await requirePermission("finance:create");
     const input = parseOrThrow(financialCategoryCreateSchema, raw);
 
-    const created = await db.financialCategory.create({
-      data: {
-        name: input.name,
-        slug: input.slug,
-        type: input.type,
-      },
-      select: { id: true },
+    const created = await db.$transaction(async (tx) => {
+      return tx.financialCategory.create({
+        data: {
+          name: input.name,
+          slug: input.slug,
+          type: input.type,
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -88,14 +90,16 @@ export async function updateFinancialCategoryAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Kategori tidak ditemukan.");
 
-    const updated = await db.financialCategory.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.type !== undefined ? { type: input.type } : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      return tx.financialCategory.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.slug !== undefined ? { slug: input.slug } : {}),
+          ...(input.type !== undefined ? { type: input.type } : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -124,9 +128,11 @@ export async function deleteFinancialCategoryAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Kategori tidak ditemukan.");
 
-    const result = await db.financialCategory.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.financialCategory.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Kategori tidak ditemukan.");
 
@@ -154,17 +160,19 @@ export async function createFinancialTransactionAction(
     const principal = await requirePermission("finance:create");
     const input = parseOrThrow(financialTransactionCreateSchema, raw);
 
-    const created = await db.financialTransaction.create({
-      data: {
-        date: new Date(input.date),
-        amount: input.amount,
-        type: input.type,
-        categoryId: input.categoryId,
-        description: input.description ?? undefined,
-        proofFileId: input.proofFileId ?? undefined,
-        createdById: principal.userId,
-      },
-      select: { id: true },
+    const created = await db.$transaction(async (tx) => {
+      return tx.financialTransaction.create({
+        data: {
+          date: new Date(input.date),
+          amount: input.amount,
+          type: input.type,
+          categoryId: input.categoryId,
+          description: input.description ?? undefined,
+          proofFileId: input.proofFileId ?? undefined,
+          createdById: principal.userId,
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -199,19 +207,21 @@ export async function updateFinancialTransactionAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Transaksi tidak ditemukan.");
 
-    const updated = await db.financialTransaction.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.date !== undefined ? { date: new Date(input.date) } : {}),
-        ...(input.amount !== undefined ? { amount: input.amount } : {}),
-        ...(input.type !== undefined ? { type: input.type } : {}),
-        ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
-        ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.proofFileId !== undefined
-          ? { proofFileId: input.proofFileId }
-          : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      return tx.financialTransaction.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.date !== undefined ? { date: new Date(input.date) } : {}),
+          ...(input.amount !== undefined ? { amount: input.amount } : {}),
+          ...(input.type !== undefined ? { type: input.type } : {}),
+          ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.proofFileId !== undefined
+            ? { proofFileId: input.proofFileId }
+            : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -243,9 +253,11 @@ export async function deleteFinancialTransactionAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Transaksi tidak ditemukan.");
 
-    const result = await db.financialTransaction.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.financialTransaction.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Transaksi tidak ditemukan.");
 
@@ -273,16 +285,18 @@ export async function createFinancialReportAction(
     const principal = await requirePermission("finance:create");
     const input = parseOrThrow(financialReportCreateSchema, raw);
 
-    const created = await db.financialReport.create({
-      data: {
-        periodYear: input.periodYear,
-        periodMonth: input.periodMonth ?? null,
-        periodType: input.periodType,
-        visibility: input.visibility,
-        documentFileId: input.documentFileId ?? undefined,
-        createdById: principal.userId,
-      },
-      select: { id: true },
+    const created = await db.$transaction(async (tx) => {
+      return tx.financialReport.create({
+        data: {
+          periodYear: input.periodYear,
+          periodMonth: input.periodMonth ?? null,
+          periodType: input.periodType,
+          visibility: input.visibility,
+          documentFileId: input.documentFileId ?? undefined,
+          createdById: principal.userId,
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({

@@ -27,17 +27,19 @@ export async function createAnnouncementAction(
     const principal = await requirePermission("announcement:create");
     const input = parseOrThrow(announcementCreateSchema, raw);
 
-    const created = await db.announcement.create({
-      data: {
-        title: input.title,
-        body: input.body,
-        priority: input.priority,
-        audience: input.audience,
-        publishedAt: input.publishedAt ? new Date(input.publishedAt) : new Date(),
-        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        createdById: principal.userId,
-      },
-      select: { id: true },
+    const created = await db.$transaction(async (tx) => {
+      return tx.announcement.create({
+        data: {
+          title: input.title,
+          body: input.body,
+          priority: input.priority,
+          audience: input.audience,
+          publishedAt: input.publishedAt ? new Date(input.publishedAt) : new Date(),
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+          createdById: principal.userId,
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -67,19 +69,21 @@ export async function updateAnnouncementAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Pengumuman tidak ditemukan.");
 
-    const updated = await db.announcement.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.body !== undefined ? { body: input.body } : {}),
-        ...(input.priority !== undefined ? { priority: input.priority } : {}),
-        ...(input.audience !== undefined ? { audience: input.audience } : {}),
-        ...(input.publishedAt !== undefined
-          ? { publishedAt: new Date(input.publishedAt) }
-          : {}),
-        ...(input.expiresAt !== undefined ? { expiresAt: new Date(input.expiresAt) } : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      return tx.announcement.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.title !== undefined ? { title: input.title } : {}),
+          ...(input.body !== undefined ? { body: input.body } : {}),
+          ...(input.priority !== undefined ? { priority: input.priority } : {}),
+          ...(input.audience !== undefined ? { audience: input.audience } : {}),
+          ...(input.publishedAt !== undefined
+            ? { publishedAt: new Date(input.publishedAt) }
+            : {}),
+          ...(input.expiresAt !== undefined ? { expiresAt: new Date(input.expiresAt) } : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -108,9 +112,11 @@ export async function deleteAnnouncementAction(
     });
     if (!existing || existing.deletedAt) throw notFound("Pengumuman tidak ditemukan.");
 
-    const result = await db.announcement.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.announcement.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Pengumuman tidak ditemukan.");
 

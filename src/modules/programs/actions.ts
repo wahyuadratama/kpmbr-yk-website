@@ -4,7 +4,7 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
+import { db, Prisma } from "@/lib/db/prisma";
 import { requirePermission } from "@/lib/auth/guards";
 import { parseOrThrow } from "@/lib/validation/parse";
 import { programCreateSchema } from "@/lib/validation/cms";
@@ -20,27 +20,54 @@ function refreshProgramCache(): void {
   updateTag("programs");
 }
 
+/** Buat slug unik untuk program kerja (dipakai dalam transaksi). */
+async function buildProgramSlug(tx: Prisma.TransactionClient, base: string): Promise<string> {
+  const root = base
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 90) || "program";
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
+    const clash = await tx.program.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!clash) return candidate;
+  }
+  throw conflict("Tidak dapat membuat slug unik untuk program kerja ini.");
+}
+
 export async function createProgramAction(raw: unknown): Promise<ActionResult<{ id: string }>> {
   return runAction("program.create", async () => {
     const principal = await requirePermission("program:create");
     const input = parseOrThrow(programCreateSchema, raw);
 
-    const slug = input.slug ?? (await slugifyUnique(input.name));
+    const created = await db.$transaction(async (tx) => {
+      const slug = input.slug ?? (await buildProgramSlug(tx, input.name));
+      if (input.slug) {
+        const clash = await tx.program.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai program lain.`);
+      }
 
-    const created = await db.program.create({
-      data: {
-        name: input.name,
-        slug,
-        description: input.description,
-        objective: input.objective,
-        divisionName: input.divisionName,
-        picMemberId: input.picMemberId ?? null,
-        status: input.status,
-        progress: input.progress,
-        startDate: input.startDate ? new Date(input.startDate) : null,
-        endDate: input.endDate ? new Date(input.endDate) : null,
-      },
-      select: { id: true, slug: true },
+      return tx.program.create({
+        data: {
+          name: input.name,
+          slug,
+          description: input.description,
+          objective: input.objective,
+          divisionName: input.divisionName,
+          picMemberId: input.picMemberId ?? null,
+          status: input.status,
+          progress: input.progress,
+          startDate: input.startDate ? new Date(input.startDate) : null,
+          endDate: input.endDate ? new Date(input.endDate) : null,
+        },
+        select: { id: true, slug: true },
+      });
     });
 
     await writeAudit({
@@ -68,25 +95,37 @@ export async function updateProgramAction(raw: unknown): Promise<ActionResult<{ 
     });
     if (!existing || existing.deletedAt) throw notFound("Program kerja tidak ditemukan.");
 
-    const updated = await db.program.update({
-      where: { id: existing.id },
-      data: {
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.objective !== undefined ? { objective: input.objective } : {}),
-        ...(input.divisionName !== undefined ? { divisionName: input.divisionName } : {}),
-        ...(input.picMemberId !== undefined ? { picMemberId: input.picMemberId ?? null } : {}),
-        ...(input.status !== undefined ? { status: input.status } : {}),
-        ...(input.progress !== undefined ? { progress: input.progress } : {}),
-        ...(input.startDate !== undefined
-          ? { startDate: input.startDate ? new Date(input.startDate) : null }
-          : {}),
-        ...(input.endDate !== undefined
-          ? { endDate: input.endDate ? new Date(input.endDate) : null }
-          : {}),
-      },
-      select: { id: true },
+    const updated = await db.$transaction(async (tx) => {
+      let slug = existing.slug;
+      if (input.slug !== undefined && input.slug !== existing.slug) {
+        const clash = await tx.program.findUnique({
+          where: { slug: input.slug },
+          select: { id: true },
+        });
+        if (clash) throw conflict(`Slug "${input.slug}" sudah dipakai program lain.`);
+        slug = input.slug;
+      }
+
+      return tx.program.update({
+        where: { id: existing.id },
+        data: {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(slug !== existing.slug ? { slug } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.objective !== undefined ? { objective: input.objective } : {}),
+          ...(input.divisionName !== undefined ? { divisionName: input.divisionName } : {}),
+          ...(input.picMemberId !== undefined ? { picMemberId: input.picMemberId ?? null } : {}),
+          ...(input.status !== undefined ? { status: input.status } : {}),
+          ...(input.progress !== undefined ? { progress: input.progress } : {}),
+          ...(input.startDate !== undefined
+            ? { startDate: input.startDate ? new Date(input.startDate) : null }
+            : {}),
+          ...(input.endDate !== undefined
+            ? { endDate: input.endDate ? new Date(input.endDate) : null }
+            : {}),
+        },
+        select: { id: true },
+      });
     });
 
     await writeAudit({
@@ -113,9 +152,11 @@ export async function deleteProgramAction(raw: unknown): Promise<ActionResult<{ 
     });
     if (!existing || existing.deletedAt) throw notFound("Program kerja tidak ditemukan.");
 
-    const result = await db.program.updateMany({
-      where: { id, deletedAt: null },
-      data: { deletedAt: new Date() },
+    const result = await db.$transaction(async (tx) => {
+      return tx.program.updateMany({
+        where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
     if (result.count === 0) throw notFound("Program kerja tidak ditemukan.");
 
@@ -130,22 +171,4 @@ export async function deleteProgramAction(raw: unknown): Promise<ActionResult<{ 
     refreshProgramCache();
     return { id };
   });
-}
-
-async function slugifyUnique(name: string): Promise<string> {
-  const root = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 90) || "program";
-
-  for (let suffix = 1; suffix <= 100; suffix += 1) {
-    const candidate = suffix === 1 ? root : `${root}-${suffix}`;
-    const clash = await db.program.findUnique({
-      where: { slug: candidate },
-      select: { id: true },
-    });
-    if (!clash) return candidate;
-  }
-  throw conflict("Tidak dapat membuat slug unik untuk program kerja ini.");
 }
