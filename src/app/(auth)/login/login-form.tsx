@@ -7,18 +7,20 @@
  * memutuskan apa pun soal akses: otorisasi seluruhnya di server
  * (`loginAction` → `authorize()` di `src/auth.ts`).
  */
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { loginAction } from "./actions";
 import type { ActionResult } from "@/lib/actions/result";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
+    <Button type="submit" className="w-full" size="lg" disabled={pending}>
       {pending ? "Memproses..." : "Masuk"}
     </Button>
   );
@@ -35,19 +37,17 @@ export function LoginForm({ next }: { next: string }) {
   );
 
   const message = state.ok ? "" : state.error.message;
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    <form action={formAction} className="space-y-5" noValidate>
       <input type="hidden" name="next" value={next} />
 
-      {message ? (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {message}
-        </p>
-      ) : null}
+      {message && (
+        <Alert variant="destructive" className="text-sm">
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
@@ -63,11 +63,21 @@ export function LoginForm({ next }: { next: string }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="password">Password</Label>
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+            className="ml-auto p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-lg"
+          >
+            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
         <Input
           id="password"
           name="password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           autoComplete="current-password"
           required
           maxLength={200}
