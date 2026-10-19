@@ -20,7 +20,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" size="lg" disabled={pending}>
+    <Button
+      type="submit"
+      className="w-full h-[45px] rounded-lg bg-[#214A83] text-white font-semibold hover:bg-[#214A83]/90 disabled:opacity-70"
+      size="lg"
+      disabled={pending}
+    >
       {pending ? "Memproses..." : "Masuk"}
     </Button>
   );
@@ -40,7 +45,7 @@ export function LoginForm({ next }: { next: string }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form action={formAction} className="space-y-4" noValidate>
       <input type="hidden" name="next" value={next} />
 
       {message && (
@@ -58,7 +63,8 @@ export function LoginForm({ next }: { next: string }) {
           autoComplete="email"
           required
           maxLength={191}
-          placeholder="admin@kpmbr-yk.local"
+          placeholder="nama@email.com"
+          className="h-[42px] rounded-lg"
         />
       </div>
 
@@ -81,6 +87,7 @@ export function LoginForm({ next }: { next: string }) {
           autoComplete="current-password"
           required
           maxLength={200}
+          className="h-[42px] rounded-lg"
         />
       </div>
 
