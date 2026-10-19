@@ -1,4 +1,4 @@
-/** Unggah file �?" `POST /api/files`. */
+/** Unggah file melalui `POST /api/files`. */
 import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db/prisma";
