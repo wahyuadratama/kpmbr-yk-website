@@ -94,8 +94,16 @@ function toDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
-/** Ubah teks bebas menjadi slug URL: `Judul Berita!` → `judul-berita`. */
-export function slugify(input: string): string {
+/**
+ * Tanggal `Date` → format nilai `<input type="datetime-local">`
+ * (`yyyy-MM-ddTHH:mm`) dalam zona waktu lokal server.
+ */
+export function toDatetimeLocal(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** Ubah teks bebas menjadi slug URL: `Judul Berita!` → `judul-berita`. */export function slugify(input: string): string {
   return input
     .toLowerCase()
     .normalize("NFD")

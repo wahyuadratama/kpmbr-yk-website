@@ -30,6 +30,7 @@ datasource db {
 enum Role {
   ADMIN
   PENGURUS
+  BENDAHARA
   ANGGOTA
   ALUMNI
 }
@@ -170,6 +171,8 @@ model User {
   organizationDocuments OrganizationDocument[]
   financialTransactions FinancialTransaction[] @relation("FinancialTransactionCreatedBy")
   financialReports     FinancialReport[]     @relation("FinancialReportCreatedBy")
+  websiteSettingUpdates WebsiteSetting[]     @relation("WebsiteSettingUpdatedBy")
+  financialReportApprovals FinancialReportApproval[] @relation("FinancialReportApprovalActor")
 
   @@index([role, status])
   @@index([deletedAt])
@@ -711,6 +714,26 @@ enum FinancialReportType {
   YEARLY
 }
 
+/// Status alur kerja laporan keuangan.
+///
+/// DRAFT → SUBMITTED → APPROVED → PUBLISHED, atau SUBMITTED → REJECTED
+/// (kembali ke DRAFT untuk diperbaiki).
+enum FinancialReportStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+/// Aksi yang dicatat pada riwayat persetujuan laporan.
+enum FinancialReportApprovalAction {
+  SUBMIT
+  APPROVE
+  REJECT
+  PUBLISH
+}
+
 /// Kategori transaksi keuangan (Pemasukan / Pengeluaran).
 model FinancialCategory {
   id     String   @id @default(cuid())
@@ -758,7 +781,7 @@ model FinancialReport {
   id           String               @id @default(cuid())
   periodYear   Int                  @map("period_year")
   periodMonth  Int?                 @map("period_month") @db.SmallInt
-  periodType   FinancialReportType
+  periodType   FinancialReportType   @map("period_type")
   incomeTotal  BigInt               @default(0) @db.BigInt @map("income_total")
   expenseTotal BigInt               @default(0) @db.BigInt @map("expense_total")
   balance      BigInt               @default(0) @db.BigInt
@@ -768,13 +791,46 @@ model FinancialReport {
   createdById  String?              @map("created_by_id")
   createdBy    User?                @relation("FinancialReportCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
+  /// Alur kerja laporan: draf → diajukan → disetujui → dipublikasikan.
+  status      FinancialReportStatus @default(DRAFT)
+  submittedAt DateTime?             @map("submitted_at")
+  approvedAt  DateTime?             @map("approved_at")
+  publishedAt DateTime?             @map("published_at")
+  rejectedAt  DateTime?             @map("rejected_at")
+  rejectionNote String?              @map("rejection_note") @db.Text
+
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
+  approvals FinancialReportApproval[]
+
   @@index([periodYear, periodMonth])
+  @@index([status])
   @@index([deletedAt])
   @@map("financial_reports")
+}
+
+/// Riwayat aksi pada satu laporan keuangan (append-only).
+///
+/// Laporan yang sudah disetujui TIDAK BOLEH diubah diam-diam: setiap
+/// persetujuan, penolakan, dan publikasi tercatat di sini.
+model FinancialReportApproval {
+  id       String                       @id @default(cuid())
+  reportId String                       @map("report_id")
+  report   FinancialReport              @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  action FinancialReportApprovalAction
+  note   String?                        @db.Text
+
+  actorId String? @map("actor_id")
+  actor   User?   @relation("FinancialReportApprovalActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([reportId, createdAt])
+  @@index([actorId])
+  @@map("financial_report_approvals")
 }
 
 // -----------------------------------------------------------------------------
@@ -847,6 +903,62 @@ model OrganizationDocument {
   @@index([accessLevel])
   @@index([deletedAt])
   @@map("organization_documents")
+}
+
+// -----------------------------------------------------------------------------
+// PENGATURAN WEBSITE
+// -----------------------------------------------------------------------------
+
+/// Pengaturan website dan status operasional — tabel BARIS TUNGGAL.
+///
+/// Dipakai untuk:
+///
+/// - Status maintenance (ditegakkan di lapisan request, bukan di frontend).
+/// - Identitas, kontak, dan metadata SEO yang dapat disunting admin.
+/// - Navigasi dan footer (disimpan sebagai JSON).
+///
+/// Baris singleton: id tetap `"default"`.
+model WebsiteSetting {
+  id String @id @default("default")
+
+  // --- Mode pemeliharaan -----------------------------------------------------
+  isMaintenanceEnabled Boolean   @default(false) @map("is_maintenance_enabled")
+  /// Pesan yang dilihat pengunjung saat website dalam pemeliharaan.
+  maintenanceMessage String?     @db.Text @map("maintenance_message")
+  maintenanceStartedAt DateTime? @map("maintenance_started_at")
+  /// Perkiraan waktu selesai pemeliharaan (opsional).
+  maintenanceEstimateAt DateTime? @map("maintenance_estimate_at")
+
+  // --- Identitas situs -------------------------------------------------------
+  siteName        String? @db.VarChar(191) @map("site_name")
+  siteDescription String? @db.Text @map("site_description")
+  slogan          String? @db.VarChar(191) @map("slogan")
+  organizationName String? @db.VarChar(191) @map("organization_name")
+
+  // --- Kontak ----------------------------------------------------------------
+  contactEmail     String? @db.VarChar(191) @map("contact_email")
+  contactInstagram String? @db.VarChar(191) @map("contact_instagram")
+  addressLine      String? @db.VarChar(255) @map("address_line")
+  city             String? @db.VarChar(100)
+  region           String? @db.VarChar(100)
+
+  // --- SEO -------------------------------------------------------------------
+  seoTitle       String? @db.VarChar(191) @map("seo_title")
+  seoDescription String? @db.Text @map("seo_description")
+
+  // --- Navigasi & footer (JSON) ---------------------------------------------
+  /// Struktur navigasi header dalam bentuk JSON.
+  navigationJson String? @db.LongText @map("navigation_json")
+  /// Struktur navigasi footer dalam bentuk JSON.
+  footerJson     String? @db.LongText @map("footer_json")
+
+  updatedById String? @map("updated_by_id")
+  updatedBy   User?   @relation("WebsiteSettingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("website_settings")
 }
 
 // -----------------------------------------------------------------------------

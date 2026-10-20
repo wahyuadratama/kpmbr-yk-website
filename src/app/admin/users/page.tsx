@@ -24,6 +24,7 @@ export const dynamic = "force-dynamic";
 const ROLE_LABEL: Record<Role, string> = {
   ADMIN: "Administrator",
   PENGURUS: "Pengurus",
+  BENDAHARA: "Bendahara",
   ANGGOTA: "Anggota",
   ALUMNI: "Alumni",
 };

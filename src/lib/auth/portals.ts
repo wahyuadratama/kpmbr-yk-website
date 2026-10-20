@@ -29,6 +29,11 @@ export const PORTALS = {
     label: "Portal pengurus",
     roles: ["PENGURUS", "ADMIN"] as const satisfies readonly Role[],
   },
+  bendahara: {
+    path: "/bendahara",
+    label: "Portal bendahara",
+    roles: ["BENDAHARA", "ADMIN"] as const satisfies readonly Role[],
+  },
   member: {
     path: "/member",
     label: "Portal anggota",
@@ -51,6 +56,7 @@ export type PortalKey = keyof typeof PORTALS;
 export const DASHBOARD_BY_ROLE: Record<Role, string> = {
   ADMIN: PORTALS.admin.path,
   PENGURUS: PORTALS.pengurus.path,
+  BENDAHARA: PORTALS.bendahara.path,
   ANGGOTA: PORTALS.member.path,
   ALUMNI: PORTALS.alumni.path,
 };

@@ -236,6 +236,43 @@ Status: `IMPLEMENTED`
 [x] Script check:nav untuk memvalidasi setiap tautan navigasi
 ```
 
+## Stage 10 — Dashboard & CMS Terpadu
+
+Status: `IMPLEMENTED`
+
+```text
+[x] Role BENDAHARA (migrasi enum, permission terpisah)
+[x] Design tokens dashboard: navy-biru-putih
+[x] DashboardShell: sidebar navy + header putih + area kerja, responsif
+[x] Komponen bersama: StatCard, Panel, PageHeading, StatusBadge, Pagination
+[x] Admin Control Center: 5 kartu statistik, panel aktivitas, konten
+    terbaru, status website, aktivitas terbaru
+[x] CMS Berita & Pengumuman: tab, pencarian, filter, pagination, CRUD,
+    terbitkan/arsipkan, hapus dengan konfirmasi
+[x] Pengaturan website (identitas, kontak, SEO) + kontrol maintenance
+[x] Mode maintenance ditegakkan di lapisan request (src/proxy.ts)
+[x] CMS Keuangan Bendahara: transaksi, kategori, laporan, transparansi
+[x] Alur laporan: draf -> diajukan -> disetujui -> dipublikasikan
+[x] Dashboard Pengurus, Anggota, Alumni
+[x] Halaman profil, agenda, pengumuman, transparansi untuk anggota/alumni
+[x] Script check:schema memvalidasi pemetaan kolom Prisma <-> MySQL
+```
+
+Catatan penting:
+
+- **Persetujuan laporan hanya milik ADMIN.** Bendahara menyusun dan
+  mengajukan, tetapi tidak dapat menyetujui atau menerbitkan laporannya
+  sendiri. Pemisahan ini perlu dikonfirmasi organisasi.
+- **Angka laporan dihitung ulang dari transaksi sumber** saat pengajuan,
+  sehingga laporan tidak mungkin berbeda dari transaksinya.
+- **Maintenance tidak mematikan keamanan.** Halaman privat tetap dapat
+  diakses karena masing-masing punya guard sendiri; hanya halaman publik
+  yang dialihkan ke `/maintenance`.
+- **Bug skema yang ditemukan saat audit:** `FinancialReport.periodType`
+  tidak punya `@map("period_type")`, sehingga model itu belum pernah
+  berhasil di-query. Diperbaiki dan sekarang dicegah oleh
+  `npm run check:schema`.
+
 ## Menunggu keputusan organisasi
 
 Dua item TIDAK dapat diselesaikan tanpa keputusan organisasi. Keduanya

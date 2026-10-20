@@ -59,6 +59,7 @@ const DEV_PASSWORD = "KPMBR-YK-dev-2026!";
 const DEV_ACCOUNTS: { email: string; role: Role }[] = [
   { email: "admin@kpmbr-yk.local", role: Role.ADMIN },
   { email: "pengurus@kpmbr-yk.local", role: Role.PENGURUS },
+  { email: "bendahara@kpmbr-yk.local", role: Role.BENDAHARA },
   { email: "anggota@kpmbr-yk.local", role: Role.ANGGOTA },
   { email: "alumni@kpmbr-yk.local", role: Role.ALUMNI },
 ];

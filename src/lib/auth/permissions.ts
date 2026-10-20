@@ -53,6 +53,8 @@ export const PERMISSIONS = [
   "finance:create",
   "finance:delete",
   "finance:export",
+  "finance:approve",
+  "finance:publish",
   "document:read",
   "document:create",
   "document:delete",
@@ -60,11 +62,13 @@ export const PERMISSIONS = [
   "card:read_own",
   "card:read_any",
   "audit_log:read",
+  "website:read",
+  "website:update",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
 
-export type Role = "ADMIN" | "PENGURUS" | "ANGGOTA" | "ALUMNI";
+export type Role = "ADMIN" | "PENGURUS" | "BENDAHARA" | "ANGGOTA" | "ALUMNI";
 
 /**
  * Permission yang boleh dijalankan terhadap record milik sendiri saja.
@@ -84,8 +88,12 @@ const ADMIN_ONLY: Permission[] = [
   "user:change_role",
   "member:delete",
   "finance:delete",
+  "finance:approve",
+  "finance:publish",
   "document:delete",
   "audit_log:read",
+  "website:read",
+  "website:update",
 ];
 
 /**
@@ -126,6 +134,30 @@ const PENGURUS: Permission[] = [
   "card:read_any",
 ];
 
+/**
+ * BENDAHARA — pengelola keuangan.
+ *
+ * Boleh mencatat transaksi, menyusun dan mengajukan laporan, serta membuat
+ * LPJ. TIDAK boleh menyetujui atau menerbitkan laporannya sendiri: persetujuan
+ * dan publikasi adalah wewenang ADMIN. Tidak boleh menyentuh akun pengguna,
+ * pengaturan website, maupun modul CMS publik.
+ */
+const BENDAHARA: Permission[] = [
+  "news:read",
+  "program:read",
+  "event:read",
+  "announcement:read",
+  "finance:read_summary",
+  "finance:read_transaction",
+  "finance:create",
+  "finance:export",
+  "document:read",
+  "document:create",
+  "file:upload",
+  "member:read",
+  "card:read_own",
+];
+
 const ANGGOTA: Permission[] = [
   "member:update",
   "alumni:read_directory",
@@ -157,6 +189,7 @@ function build(role: Permission[]): ReadonlySet<Permission> {
 export const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
   ADMIN: build([...PERMISSIONS]),
   PENGURUS: build(PENGURUS),
+  BENDAHARA: build(BENDAHARA),
   ANGGOTA: build(ANGGOTA),
   ALUMNI: build(ALUMNI),
 };
@@ -213,3 +246,12 @@ export function canAccess({
 export function permissionsFor(role: Role): Permission[] {
   return [...(ROLE_PERMISSIONS[role] ?? [])].sort();
 }
+
+/** Label peran dalam bahasa manusia, untuk sidebar dan header dashboard. */
+export const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: "Administrator",
+  PENGURUS: "Pengurus",
+  BENDAHARA: "Bendahara",
+  ANGGOTA: "Anggota",
+  ALUMNI: "Alumni",
+};

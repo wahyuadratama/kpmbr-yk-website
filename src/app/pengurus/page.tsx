@@ -1,154 +1,195 @@
 import type { Metadata } from "next";
-import { Newspaper, Calendar, LayoutList, LayoutGrid, Megaphone } from "lucide-react";
+import Link from "next/link";
+import {
+  Calendar,
+  FolderKanban,
+  Image,
+  Newspaper,
+} from "lucide-react";
 import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission, type Permission } from "@/lib/auth/permissions";
+import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db/prisma";
+import { PageHeading } from "@/components/dashboard/page-heading";
+import { Panel } from "@/components/dashboard/panel";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { StatusBadge } from "@/components/dashboard/status-badge";
+import { formatTanggalPendek } from "@/lib/utils/format";
+import { EventStatus, NewsStatus } from "@/generated/prisma/enums";
 
-export const metadata: Metadata = {
-  title: "Dasbor pengurus",
-  robots: { index: false, follow: false },
-};
-
+export const metadata: Metadata = { title: "Dasbor Pengurus" };
 export const dynamic = "force-dynamic";
 
-type Stat = { label: string; href: string; icon: React.ElementType };
-
-const MODUL: Stat[] = [
-  {
-    label: "Berita",
-    href: "/pengurus/berita",
-    icon: Newspaper,
-  },
-  {
-    label: "Agenda",
-    href: "/pengurus/agenda",
-    icon: Calendar,
-  },
-  {
-    label: "Program Kerja",
-    href: "/pengurus/proker",
-    icon: LayoutList,
-  },
-  {
-    label: "Dokumentasi",
-    href: "/pengurus/dokumentasi",
-    icon: LayoutGrid,
-  },
-  {
-    label: "Pengumuman",
-    href: "/pengurus/pengumuman",
-    icon: Megaphone,
-  },
-];
-
 /**
- * Dasbor pengurus — Stage 3.
+ * Dashboard pengurus.
  *
- * Guard: PENGURUS + ADMIN. Setiap kartu modul dipersembahkan sesuai
- * permission milik role, ditentukan di server (bukan disembunyikan di CSS).
+ * Angka dihitung dari database. Menampilkan program kerja, agenda, foto
+ * dokumentasi, dan berita yang sudah terbit.
  */
-export default async function PengurusPage() {
+export default async function PengurusDashboardPage() {
   const principal = await requirePortalPage("/pengurus");
+  const now = new Date();
 
-  const [newsStats, eventStats, programStats, announcements] = await Promise.all([
-    hasPermission(principal.role, "news:read")
-      ? db.news.groupBy({ by: ["status"], _count: { _all: true } })
-      : Promise.resolve([]),
-    hasPermission(principal.role, "event:read")
-      ? db.event.groupBy({ by: ["status"], _count: { _all: true } })
-      : Promise.resolve([]),
-    hasPermission(principal.role, "program:read")
-      ? db.program.groupBy({ by: ["status"], _count: { _all: true } })
-      : Promise.resolve([]),
-    hasPermission(principal.role, "announcement:read")
-      ? db.announcement.findMany({
-          where: { deletedAt: null },
-          orderBy: { publishedAt: "desc" },
-          take: 5,
-          select: { id: true, title: true, priority: true, publishedAt: true },
-        })
-      : Promise.resolve([]),
-  ]);
-
-  const countBy = <T extends { status: string; _count: { _all: number } }>(
-    rows: T[],
-  ): Record<string, number> =>
-    rows.reduce((acc, row) => ({ ...acc, [row.status]: row._count._all }), {});
+  const [programCount, activeAgenda, albumCount, publishedNews, upcoming, programs] =
+    await Promise.all([
+      hasPermission(principal.role, "program:read")
+        ? db.program.count({ where: { deletedAt: null } })
+        : Promise.resolve(0),
+      hasPermission(principal.role, "event:read")
+        ? db.event.count({
+            where: {
+              deletedAt: null,
+              status: { in: [EventStatus.TERJADWAL, EventStatus.BERLANGSUNG] },
+            },
+          })
+        : Promise.resolve(0),
+      hasPermission(principal.role, "documentation:read")
+        ? db.documentationAlbum.count({ where: { deletedAt: null } })
+        : Promise.resolve(0),
+      hasPermission(principal.role, "news:read")
+        ? db.news.count({ where: { deletedAt: null, status: NewsStatus.PUBLISHED } })
+        : Promise.resolve(0),
+      hasPermission(principal.role, "event:read")
+        ? db.event.findMany({
+            where: {
+              deletedAt: null,
+              status: { in: [EventStatus.TERJADWAL, EventStatus.BERLANGSUNG] },
+              startsAt: { gte: now },
+            },
+            orderBy: { startsAt: "asc" },
+            take: 5,
+            select: { id: true, slug: true, title: true, startsAt: true, location: true },
+          })
+        : Promise.resolve([]),
+      hasPermission(principal.role, "program:read")
+        ? db.program.findMany({
+            where: { deletedAt: null },
+            orderBy: { updatedAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              progress: true,
+              status: true,
+              divisionName: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Dasbor pengurus</h1>
-        <p className="text-sm text-muted-foreground">
-          Masuk sebagai <strong>{principal.email}</strong> ({principal.role})
-        </p>
+    <div className="space-y-5">
+      <PageHeading
+        title="Dashboard Pengurus"
+        description={`Selamat datang, ${principal.email}. Kelola program kerja, agenda, dan dokumentasi organisasi dari sini.`}
+      />
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Program Kerja"
+          value={programCount}
+          icon={FolderKanban}
+          hint="Seluruh program"
+        />
+        <StatCard
+          label="Agenda Aktif"
+          value={activeAgenda}
+          icon={Calendar}
+          hint="Terjadwal dan berlangsung"
+        />
+        <StatCard
+          label="Dokumentasi"
+          value={albumCount}
+          icon={Image}
+          hint="Album foto kegiatan"
+        />
+        <StatCard
+          label="Berita Terbit"
+          value={publishedNews}
+          icon={Newspaper}
+          hint="Status terbit"
+        />
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Modul</h2>
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {MODUL.filter((m) => {
-            const permMap: Record<string, string> = {
-              Berita: "news:read",
-              Agenda: "event:read",
-              "Program Kerja": "program:read",
-              Dokumentasi: "documentation:read",
-              Pengumuman: "announcement:read",
-            };
-            return hasPermission(principal.role, permMap[m.label] as Permission);
-          }).map((m) => {
-            const Icon = m.icon;
-            return (
-              <a
-                key={m.label}
-                href={m.href}
-                className="flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent/50 transition-colors text-decoration-none"
-              >
-                <Icon className="size-5" />
-                <span className="text-sm font-medium">{m.label}</span>
-              </a>
-            );
-          })}
-        </div>
-      </section>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Panel
+          title="Agenda Mendatang"
+          description="Kegiatan yang sudah terjadwal"
+          actions={
+            <Link
+              href="/pengurus/agenda"
+              className="rounded-lg border border-dashboard-border px-2.5 py-1 text-xs font-medium text-dashboard-primary transition-colors hover:bg-dashboard-canvas"
+            >
+              Kelola agenda
+            </Link>
+          }
+        >
+          {upcoming.length === 0 ? (
+            <p className="py-10 text-center text-sm text-dashboard-text-muted">
+              Belum ada agenda mendatang.
+            </p>
+          ) : (
+            <ul className="divide-y divide-dashboard-border">
+              {upcoming.map((event) => (
+                <li
+                  key={event.id}
+                  className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-dashboard-text">
+                    {event.title}
+                  </span>
+                  <StatusBadge tone="info">
+                    {formatTanggalPendek(event.startsAt)}
+                  </StatusBadge>
+                  {event.location ? (
+                    <span className="text-xs text-dashboard-text-muted">
+                      {event.location}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Ringkasan</h2>
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {[
-            { label: "Berita draft", value: (countBy(newsStats)["DRAFT"] ?? 0) },
-            { label: "Agenda", value: (countBy(eventStats)["_all"] ?? 0) },
-            { label: "Program", value: (countBy(programStats)["_all"] ?? 0) },
-            { label: "Pengumuman", value: announcements.length },
-          ].map((s) => (
-            <div key={s.label} className="rounded-lg border p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                {s.label}
-              </p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {announcements.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Pengumuman terbaru</h2>
-          <ul className="divide-y rounded-lg border">
-            {announcements.map((a) => (
-              <li key={a.id} className="flex justify-between items-start p-3 text-sm">
-                <div>
-                  <p className="font-medium">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{a.priority}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {a.publishedAt.toISOString().slice(0, 10)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <Panel
+          title="Progres Program Kerja"
+          description="Program yang baru diperbarui"
+          actions={
+            <Link
+              href="/pengurus/proker"
+              className="rounded-lg border border-dashboard-border px-2.5 py-1 text-xs font-medium text-dashboard-primary transition-colors hover:bg-dashboard-canvas"
+            >
+              Kelola program
+            </Link>
+          }
+        >
+          {programs.length === 0 ? (
+            <p className="py-10 text-center text-sm text-dashboard-text-muted">
+              Belum ada program kerja.
+            </p>
+          ) : (
+            <ul className="divide-y divide-dashboard-border">
+              {programs.map((program) => (
+                <li
+                  key={program.id}
+                  className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-dashboard-text">
+                    {program.name}
+                  </span>
+                  <span className="text-xs text-dashboard-text-muted">
+                    {program.divisionName}
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-dashboard-text">
+                    {program.progress}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }

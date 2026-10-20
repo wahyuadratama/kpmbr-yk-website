@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Calendar, Megaphone, UserRoundCheck } from "lucide-react";
 import { requirePortalPage } from "@/lib/auth/guards";
 import { db } from "@/lib/db/prisma";
-import { MembershipStatus } from "@/generated/prisma/enums";
-import { formatTanggalPendek } from "@/lib/utils/format";
+import { PageHeading } from "@/components/dashboard/page-heading";
+import { Panel } from "@/components/dashboard/panel";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { StatusBadge } from "@/components/dashboard/status-badge";
 import ProfileForm from "@/components/member/profile-form";
+import { formatTanggalPendek } from "@/lib/utils/format";
+import { AnnouncementAudience, EventStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = {
   title: "Portal Alumni",
@@ -13,94 +19,18 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Portal Alumni — Stage 5.
+ * Dashboard alumni.
  *
- * Guard: ALUMNI dan ADMIN. Anggota yang belum lulus (role ANGGOTA) tidak
- * boleh masuk ke sini.
- *
- * ALUMNI melihat profil sendiri + edit. ADMIN melihat daftar alumni dan
- * dapat melakukan transisi keanggotaan (AKTIF → LULUS).
+ * Menampilkan informasi milik alumni itu sendiri beserta agenda dan
+ * pengumuman. Menu administrasi TIDAK ditampilkan pada portal ini.
  */
-export default async function AlumniPage() {
+export default async function AlumniDashboardPage() {
   const principal = await requirePortalPage("/alumni");
-  const isAdmin = principal.role === "ADMIN";
+  const now = new Date();
 
-  if (isAdmin) {
-    const alumni = await db.member.findMany({
-      where: {
-        deletedAt: null,
-        user: { role: "ALUMNI", deletedAt: null },
-      },
-      orderBy: { fullName: "asc" },
-      take: 100,
-      select: {
-        memberCode: true,
-        fullName: true,
-        nickname: true,
-        angkatan: true,
-        university: true,
-        studyProgram: true,
-        graduationYear: true,
-        city: true,
-        user: { select: { email: true, status: true } },
-      },
-    });
-
-    return (
-      <div className="space-y-6">
-        <section className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Kelola Alumni</h1>
-          <p className="text-sm text-muted-foreground">
-            Daftar alumni dan transisi keanggotaan.
-          </p>
-        </section>
-
-        <section className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="p-3">Kode</th>
-                <th className="p-3">Nama</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Angkatan</th>
-                <th className="p-3">Universitas</th>
-                <th className="p-3">Prodi</th>
-                <th className="p-3 text-right">Lulus</th>
-                <th className="p-3 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {alumni.map((a) => (
-                <tr key={a.memberCode} className="p-3">
-                  <td className="font-mono text-xs">{a.memberCode}</td>
-                  <td className="font-medium">{a.fullName}</td>
-                  <td className="text-muted-foreground text-sm">
-                    {a.user?.email ?? "—"}
-                  </td>
-                  <td className="text-muted-foreground">{a.angkatan ?? "—"}</td>
-                  <td className="text-muted-foreground text-sm">
-                    {a.university ?? "—"}
-                  </td>
-                  <td className="text-muted-foreground text-sm">
-                    {a.studyProgram ?? "—"}
-                  </td>
-                  <td className="text-right text-muted-foreground">
-                    {a.graduationYear ?? "—"}
-                  </td>
-                  <td className="text-right space-x-1"></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      </div>
-    );
-  }
-
-  // ALUMNI — profil sendiri
-  const member = principal.memberId
-    ? await db.member
-        .findUnique({
+  const [member, upcoming, announcements, memberships] = await Promise.all([
+    principal.memberId
+      ? db.member.findUnique({
           where: { id: principal.memberId },
           select: {
             fullName: true,
@@ -118,139 +48,182 @@ export default async function AlumniPage() {
             graduationYear: true,
           },
         })
-        .catch(() => null)
-    : null;
-
-  const memberships = principal.memberId
-    ? await db.membership.findMany({
-        where: { memberId: principal.memberId },
-        orderBy: { startDate: "desc" },
-        select: {
-          status: true,
-          cohort: true,
-          startDate: true,
-          endDate: true,
-          endReason: true,
-          notes: true,
-        },
-      })
-    : [];
+      : Promise.resolve(null),
+    db.event.findMany({
+      where: {
+        deletedAt: null,
+        status: { in: [EventStatus.TERJADWAL, EventStatus.BERLANGSUNG] },
+        startsAt: { gte: now },
+      },
+      orderBy: { startsAt: "asc" },
+      take: 3,
+      select: { id: true, title: true, startsAt: true },
+    }),
+    db.announcement.findMany({
+      where: {
+        deletedAt: null,
+        audience: { in: [AnnouncementAudience.PUBLIC, AnnouncementAudience.ALUMNI] },
+        publishedAt: { lte: now },
+        OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
+      },
+      orderBy: [{ priority: "desc" }, { publishedAt: "desc" }],
+      take: 3,
+      select: { id: true, title: true, publishedAt: true },
+    }),
+    principal.memberId
+      ? db.membership.findMany({
+          where: { memberId: principal.memberId },
+          orderBy: { startDate: "desc" },
+          select: {
+            status: true,
+            cohort: true,
+            startDate: true,
+            endDate: true,
+          },
+        })
+      : Promise.resolve([]),
+  ]);
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Portal Alumni</h1>
-        <p className="text-sm text-muted-foreground">
-          Masuk sebagai <strong>{principal.email}</strong> ({principal.role})
-        </p>
+    <div className="space-y-5">
+      <PageHeading
+        title="Portal Alumni"
+        description={`Selamat datang, ${principal.email}. Informasi alumni dan kegiatan organisasi.`}
+      />
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Status Alumni"
+          value={member?.graduationYear ? `Lulus ${member.graduationYear}` : "Alumni"}
+          icon={UserRoundCheck}
+          hint={member?.memberCode ?? "Belum terhubung"}
+        />
+        <StatCard
+          label="Angkatan"
+          value={member?.angkatan ?? "—"}
+          icon={UserRoundCheck}
+          hint={member?.university ?? "Belum diisi"}
+        />
+        <StatCard
+          label="Agenda"
+          value={upcoming.length}
+          icon={Calendar}
+          hint="Kegiatan terjadwal"
+        />
+        <StatCard
+          label="Pengumuman"
+          value={announcements.length}
+          icon={Megaphone}
+          hint="Pemberitahuan terbaru"
+        />
       </section>
 
-      {!member ? (
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">
-            Data alumni tidak ditemukan. Hubungi sekretariat.
-          </p>
-        </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Panel title="Agenda Mendatang" className="xl:col-span-2">
+          {upcoming.length === 0 ? (
+            <p className="py-10 text-center text-sm text-dashboard-text-muted">
+              Belum ada agenda mendatang.
+            </p>
+          ) : (
+            <ul className="divide-y divide-dashboard-border">
+              {upcoming.map((event) => (
+                <li
+                  key={event.id}
+                  className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-dashboard-text">
+                    {event.title}
+                  </span>
+                  <StatusBadge tone="info">
+                    {formatTanggalPendek(event.startsAt)}
+                  </StatusBadge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Pengumuman">
+          {announcements.length === 0 ? (
+            <p className="py-10 text-center text-sm text-dashboard-text-muted">
+              Belum ada pengumuman.
+            </p>
+          ) : (
+            <ul className="divide-y divide-dashboard-border">
+              {announcements.map((item) => (
+                <li key={item.id} className="py-2.5 first:pt-0 last:pb-0">
+                  <p className="truncate text-sm font-medium text-dashboard-text">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-dashboard-text-muted">
+                    {formatTanggalPendek(item.publishedAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      {member ? (
+        <Panel title="Profil Alumni" description="Data yang dapat Anda perbarui sendiri.">
+          <ProfileForm
+            initial={{
+              fullName: member.fullName,
+              nickname: member.nickname ?? "",
+              gender: member.gender,
+              phone: member.phone,
+              city: member.city,
+              bio: member.bio,
+              addressDetail: member.addressDetail,
+              isDirectoryVisible: member.isDirectoryVisible,
+            }}
+          />
+        </Panel>
       ) : (
-        <>
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Profil Alumni</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Kode anggota
-                </p>
-                <p className="font-mono text-sm">{member.memberCode}</p>
-              </div>
-              {member.angkatan && (
-                <div className="rounded-lg border p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Angkatan
-                  </p>
-                  <p className="text-sm">{member.angkatan}</p>
-                </div>
-              )}
-              {member.graduationYear && (
-                <div className="rounded-lg border p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Tahun lulus
-                  </p>
-                  <p className="text-sm">{member.graduationYear}</p>
-                </div>
-              )}
-              <div className="rounded-lg border p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Direktori publik
-                </p>
-                <p className="text-sm">
-                  {member.isDirectoryVisible ? "Tampilkan" : "Sembunyi"}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Edit Profil</h2>
-            <ProfileForm
-              initial={{
-                fullName: member.fullName,
-                nickname: member.nickname ?? "",
-                gender: member.gender ?? null,
-                phone: member.phone ?? null,
-                city: member.city ?? null,
-                bio: member.bio ?? null,
-                addressDetail: member.addressDetail ?? null,
-                isDirectoryVisible: member.isDirectoryVisible,
-              }}
-            />
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Riwayat Keanggotaan</h2>
-            {memberships.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Belum ada riwayat keanggotaan.
-              </p>
-            ) : (
-              <ul className="divide-y rounded-lg border">
-                {memberships.map((m) => (
-                  <li key={`${m.cohort}-${m.startDate}`} className="p-3">
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                      <span className="font-medium">
-                        Angkatan {m.cohort}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                          m.status === MembershipStatus.AKTIF
-                            ? "border-emerald/20 bg-emerald/50 text-emerald-700"
-                            : m.status === MembershipStatus.LULUS
-                            ? "border-amber/20 bg-amber/50 text-amber-700"
-                            : "border-slate/20 bg-slate/50 text-slate-700"
-                        }`}
-                      >
-                        {m.status}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTanggalPendek(m.startDate)}
-                      </span>
-                      {m.endDate && (
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          s.d. {formatTanggalPendek(m.endDate)}
-                        </span>
-                      )}
-                    </div>
-                    {m.notes && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {m.notes}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </>
+        <Panel title="Profil Alumni">
+          <p className="text-sm text-dashboard-text-muted">
+            Data alumni Anda belum terhubung. Hubungi sekretariat.
+          </p>
+        </Panel>
       )}
+
+      {memberships.length > 0 ? (
+        <Panel title="Riwayat Keanggotaan">
+          <ul className="divide-y divide-dashboard-border">
+            {memberships.map((item) => (
+              <li
+                key={`${item.cohort}-${item.startDate.toISOString()}`}
+                className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+              >
+                <span className="text-sm font-medium text-dashboard-text">
+                  Angkatan {item.cohort}
+                </span>
+                <StatusBadge tone="neutral">{item.status}</StatusBadge>
+                <span className="text-xs text-dashboard-text-muted">
+                  {formatTanggalPendek(item.startDate)}
+                  {item.endDate
+                    ? ` s.d. ${formatTanggalPendek(item.endDate)}`
+                    : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
+
+      {principal.role === "ADMIN" ? (
+        <p className="text-xs text-dashboard-text-muted">
+          Ingin mengelola data alumni?{" "}
+          <Link
+            href="/admin/alumni"
+            className="underline underline-offset-4 hover:text-dashboard-primary"
+          >
+            Buka menu Alumni di dashboard admin
+          </Link>
+          .
+        </p>
+      ) : null}
     </div>
   );
 }

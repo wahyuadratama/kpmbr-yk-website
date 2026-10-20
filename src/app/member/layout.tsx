@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { requirePortalPage } from "@/lib/auth/guards";
-import { PortalShell } from "@/components/layout/portal-shell";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { MEMBER_NAV, filterNavForRole } from "@/lib/dashboard/nav";
 
 /**
  * Layout `/member`.
@@ -10,11 +11,21 @@ import { PortalShell } from "@/components/layout/portal-shell";
  */
 export const dynamic = "force-dynamic";
 
-export default async function MemberLayout({ children }: { children: ReactNode }) {
+export default async function MemberLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const principal = await requirePortalPage("/member");
+
   return (
-    <PortalShell path="member" principal={principal}>
+    <DashboardShell
+      portalLabel="Portal Anggota"
+      nav={filterNavForRole(MEMBER_NAV, principal.role)}
+      role={principal.role}
+      email={principal.email}
+    >
       {children}
-    </PortalShell>
+    </DashboardShell>
   );
 }

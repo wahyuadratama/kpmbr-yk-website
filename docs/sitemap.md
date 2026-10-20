@@ -75,37 +75,66 @@ role berbeda.
 
 ## 3. Portal Internal
 
+Semua portal memakai satu kerangka dashboard (sidebar navy + header putih +
+area kerja abu-abu muda). Menu tiap portal disaring di server berdasarkan
+permission role.
+
 ```text
-/admin                             Dashboard admin
+/admin                             Dashboard admin (Admin Control Center)
+├── /admin/konten                 CMS Berita & Pengumuman
+│   ├── /admin/konten/berita/baru         Tulis berita
+│   ├── /admin/konten/berita/[id]         Sunting berita
+│   ├── /admin/konten/pengumuman/baru     Buat pengumuman
+│   └── /admin/konten/pengumuman/[id]     Sunting pengumuman
 ├── /admin/anggota                 Manajemen anggota
 ├── /admin/alumni                  Manajemen alumni
 ├── /admin/users                   Manajemen user & role
-├── /admin/keuangan                Transaksi & laporan keuangan
 ├── /admin/arsip                   Arsip dokumen organisasi
 ├── /admin/audit-log               Log audit
-└── /admin/pengaturan              Konfigurasi organisasi (rencana)
+└── /admin/pengaturan              Pengaturan website + mode maintenance
 
-/pengurus                          Dashboard pengurus
-├── /pengurus/berita               Buat & kelola berita
-├── /pengurus/agenda               Buat & kelola agenda
-├── /pengurus/proker               Buat & kelola program kerja
-├── /pengurus/dokumentasi          Buat & kelola dokumentasi
-├── /pengurus/pengumuman           Buat pengumuman
-└── /pengurus/anggota              Lihat anggota sesuai permission
+/bendahara                        Dashboard bendahara (CMS keuangan)
+├── /bendahara/transaksi          Transaksi pemasukan & pengeluaran
+├── /bendahara/kategori            Kategori keuangan
+├── /bendahara/laporan            Laporan + alur persetujuan
+└── /bendahara/transparansi       Ringkasan laporan yang terbit
 
-/member                            Dashboard anggota
+/pengurus                         Dashboard pengurus
+├── /pengurus/proker               Kelola program kerja
+├── /pengurus/agenda               Kelola agenda
+├── /pengurus/dokumentasi          Kelola dokumentasi
+├── /pengurus/berita               Kelola berita & pengumuman
+└── /pengurus/laporan              Laporan keuangan (jika berizin)
+
+/member                           Dashboard anggota
+├── /member/profil                Profil saya
 ├── /member/kartu                  Kartu anggota digital
-└── ...                            Profil, agenda, pengumuman (rencana)
+├── /member/agenda                 Agenda
+├── /member/pengumuman             Pengumuman
+└── /member/transparansi           Transparansi keuangan
 
-/alumni                            Dashboard alumni
-└── ...                            Profil alumni saya (rencana)
+/alumni                           Dashboard alumni
+├── /alumni/profil                Profil alumni
+├── /alumni/agenda                 Agenda
+└── /alumni/pengumuman             Pengumuman
 ```
+
+### Role dan portal
+
+| Role | Portal | Keterangan |
+| ---- | ------ | ---------- |
+| `ADMIN` | Semua | Pengelola operasional website, bisa menyetujui & menerbitkan laporan |
+| `PENGURUS` | `/pengurus` | Modul konten sesuai permission; tanpa administrasi global |
+| `BENDAHARA` | `/bendahara` | CMS keuangan; tidak menyentuh role, pengguna, atau pengaturan |
+| `ANGGOTA` | `/member` | Data sendiri, agenda, pengumuman, transparansi |
+| `ALUMNI` | `/alumni` | Data sendiri, agenda, pengumuman |
 
 ## 4. Verifikasi & Aset
 
 ```text
 /member-card/verify/[token]        Verifikasi kartu anggota digital (server)
 /api/files/[id]                    Streaming file privat (server, cek RBAC)
+/maintenance                       Halaman pemeliharaan (publik, saat mode aktif)
 ```
 
 ### Aturan URL
@@ -123,7 +152,8 @@ role berbeda.
 | ------ | :---: | :---------: |
 | `/`, `/berita`, `/berita/kategori/*`, `/tentang`, `/kepengurusan`, `/kepengurusan/*`, `/proker`, `/agenda`, `/dokumentasi`, `/pengumuman`, `/keanggotaan`, `/alumni-direktori`, `/kontak` | ✅ | ❌ |
 | `/login` | ✅ | ❌ |
-| `/member`, `/alumni`, `/pengurus`, `/admin` | ❌ | ✅ |
+| `/maintenance` | ✅ | ❌ |
+| `/member`, `/alumni`, `/pengurus`, `/bendahara`, `/admin` | ❌ | ✅ |
 | `/member-card/verify/[token]` | ✅ (token = otorisasi) | ❌ |
 
 ## 6. SEO
