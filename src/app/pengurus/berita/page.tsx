@@ -3,9 +3,13 @@ import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db/prisma";
 import { NewsStatus } from "@/generated/prisma/enums";
-import { createNewsAction, deleteNewsAction, updateNewsAction } from "@/modules/news/actions";
+import {
+  createNewsFormAction,
+  deleteNewsFormAction,
+  setNewsStatusFormAction,
+} from "@/modules/news/form-actions";
 import CreateNewsForm from "@/components/pengurus/create-news-form";
-import { Button } from "@/components/ui/button";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Berita" };
@@ -42,7 +46,7 @@ export default async function BeritaPage() {
             Semua berita (draft, terbit, arsip). Perubahan dicatat audit log.
           </p>
         </div>
-        <CreateNewsForm createAction={createNewsAction} />
+        <CreateNewsForm createAction={createNewsFormAction} />
       </div>
 
       <section className="rounded-lg border">
@@ -77,30 +81,33 @@ export default async function BeritaPage() {
                 <td className="text-muted-foreground">
                   {formatTanggalPendek(n.createdAt)}
                 </td>
-                <td className="text-right space-x-1">
-                  {canUpdate && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        const s =
-                          n.status === NewsStatus.PUBLISHED
-                            ? NewsStatus.ARCHIVED
-                            : NewsStatus.PUBLISHED;
-                        void updateNewsAction({ id: n.id, status: s });
-                      }}
-                    >
-                      {n.status === NewsStatus.PUBLISHED ? "Arsipkan" : "Terbitkan"}
-                    </Button>
-                  )}
-                  {canDelete && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => void deleteNewsAction({ id: n.id })}
-                    >
-                      Hapus
-                    </Button>
-                  )}
+                <td className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    {canUpdate && (
+                      <ConfirmActionForm
+                        action={setNewsStatusFormAction}
+                        id={n.id}
+                        fields={{
+                          status:
+                            n.status === NewsStatus.PUBLISHED
+                              ? NewsStatus.ARCHIVED
+                              : NewsStatus.PUBLISHED,
+                        }}
+                        variant="outline"
+                      >
+                        {n.status === NewsStatus.PUBLISHED ? "Arsipkan" : "Terbitkan"}
+                      </ConfirmActionForm>
+                    )}
+                    {canDelete && (
+                      <ConfirmActionForm
+                        action={deleteNewsFormAction}
+                        id={n.id}
+                        confirmMessage={`Hapus berita "${n.title}"?`}
+                      >
+                        Hapus
+                      </ConfirmActionForm>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

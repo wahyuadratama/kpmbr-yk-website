@@ -160,13 +160,3 @@ export async function deleteOrganizationDocumentAction(
     return { id };
   });
 }
-
-/** Wrapper form action untuk tombol hapus di halaman (mengembalikan void). */
-export async function deleteOrganizationDocumentFormAction(
-  formData: FormData,
-): Promise<void> {
-  "use server";
-  const id = formData.get("id");
-  if (typeof id !== "string") return;
-  await deleteOrganizationDocumentAction({ id });
-}

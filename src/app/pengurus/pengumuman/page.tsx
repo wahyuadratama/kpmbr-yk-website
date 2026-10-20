@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import {
-  createAnnouncementAction,
-  deleteAnnouncementAction,
-} from "@/modules/announcements/actions";
+  createAnnouncementFormAction,
+  deleteAnnouncementFormAction,
+} from "@/modules/announcements/form-actions";
 import { listAnnouncements } from "@/modules/announcements/queries";
 import CreateAnnouncementForm from "@/components/pengurus/create-announcement-form";
-import { Button } from "@/components/ui/button";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Pengumuman" };
@@ -42,7 +42,7 @@ export default async function PengumumanPage() {
             Pengumuman organisasi. Perubahan dicatat audit log.
           </p>
         </div>
-        <CreateAnnouncementForm createAction={createAnnouncementAction} />
+        <CreateAnnouncementForm createAction={createAnnouncementFormAction} />
       </div>
 
       <section className="rounded-lg border">
@@ -65,16 +65,16 @@ export default async function PengumumanPage() {
                 <td className="text-muted-foreground">
                   {formatTanggalPendek(a.publishedAt)}
                 </td>
-                <td className="text-right space-x-1">
-                  {canDelete && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => void deleteAnnouncementAction({ id: a.id })}
+                <td className="text-right">
+                  {canDelete ? (
+                    <ConfirmActionForm
+                      action={deleteAnnouncementFormAction}
+                      id={a.id}
+                      confirmMessage={`Hapus pengumuman "${a.title}"?`}
                     >
                       Hapus
-                    </Button>
-                  )}
+                    </ConfirmActionForm>
+                  ) : null}
                 </td>
               </tr>
             ))}

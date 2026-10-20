@@ -3,9 +3,13 @@ import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db/prisma";
 import { ProgramStatus } from "@/generated/prisma/enums";
-import { createProgramAction, deleteProgramAction, updateProgramAction } from "@/modules/programs/actions";
+import {
+  advanceProgramProgressFormAction,
+  createProgramFormAction,
+  deleteProgramFormAction,
+} from "@/modules/programs/form-actions";
 import CreateProgramForm from "@/components/pengurus/create-program-form";
-import { Button } from "@/components/ui/button";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 
 export const metadata: Metadata = { title: "Kelola Program Kerja" };
 export const dynamic = "force-dynamic";
@@ -45,7 +49,7 @@ export default async function ProkerPage() {
             Daftar program kerja dan progresnya. Perubahan dicatat audit log.
           </p>
         </div>
-        <CreateProgramForm createAction={createProgramAction} />
+        <CreateProgramForm createAction={createProgramFormAction} />
       </div>
 
       <section className="rounded-lg border">
@@ -66,26 +70,38 @@ export default async function ProkerPage() {
                 <td className="text-muted-foreground">{p.divisionName ?? "—"}</td>
                 <td className="text-xs text-muted-foreground">{STATUS_LABEL[p.status]}</td>
                 <td className="text-right text-muted-foreground">{p.progress}%</td>
-                <td className="text-right space-x-1">
-                  {canUpdate && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        const next = (PROGRESS_STEPS.indexOf(p.progress as (typeof PROGRESS_STEPS)[number]) + 1) % PROGRESS_STEPS.length;
-                        void updateProgramAction({
-                          id: p.id,
-                          progress: PROGRESS_STEPS[next] as (typeof PROGRESS_STEPS)[number],
-                        });
-                      }}
-                    >
-                      Ubah progres
-                    </Button>
-                  )}
-                  {canDelete && (
-                    <Button size="sm" variant="destructive" onClick={() => void deleteProgramAction({ id: p.id })}>
-                      Hapus
-                    </Button>
-                  )}
+                <td className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    {canUpdate && (
+                      <ConfirmActionForm
+                        action={advanceProgramProgressFormAction}
+                        id={p.id}
+                        fields={{
+                          progress: String(
+                            PROGRESS_STEPS[
+                              (PROGRESS_STEPS.indexOf(
+                                p.progress as (typeof PROGRESS_STEPS)[number],
+                              ) +
+                                1) %
+                              PROGRESS_STEPS.length
+                            ],
+                          ),
+                        }}
+                        variant="outline"
+                      >
+                        Ubah progres
+                      </ConfirmActionForm>
+                    )}
+                    {canDelete && (
+                      <ConfirmActionForm
+                        action={deleteProgramFormAction}
+                        id={p.id}
+                        confirmMessage={`Hapus program kerja "${p.name}"?`}
+                      >
+                        Hapus
+                      </ConfirmActionForm>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CreateAlbumFormProps = {
-  createAction: typeof import("@/modules/documentation/actions").createDocumentationAlbumAction;
+  createAction: typeof import("@/modules/documentation/form-actions").createDocumentationAlbumFormAction;
 };
 
 export default function CreateAlbumForm({ createAction }: CreateAlbumFormProps) {

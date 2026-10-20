@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CreateEventFormProps = {
-  createAction: typeof import("@/modules/events/actions").createEventAction;
+  createAction: typeof import("@/modules/events/form-actions").createEventFormAction;
 };
 
 export default function CreateEventForm({ createAction }: CreateEventFormProps) {

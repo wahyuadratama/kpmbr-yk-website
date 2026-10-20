@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requirePermissionPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { formatTanggalPendek, formatJam } from "@/lib/utils/format";
@@ -41,18 +42,19 @@ type AuditFilters = {
 export default async function AuditLogPage({
   searchParams,
 }: {
-  searchParams: AuditFilters;
+  searchParams: Promise<AuditFilters>;
 }) {
   const principal = await requirePermissionPage("audit_log:read");
+  const params = await searchParams;
 
-  const actorFilter = searchParams.actor ?? "";
-  const actionFilter = searchParams.action ?? "";
-  const resourceFilter = searchParams.resource ?? "";
-  const fromFilter = searchParams.from ?? "";
-  const toFilter = searchParams.to ?? "";
-  const qFilter = searchParams.q ?? "";
+  const actorFilter = params.actor ?? "";
+  const actionFilter = params.action ?? "";
+  const resourceFilter = params.resource ?? "";
+  const fromFilter = params.from ?? "";
+  const toFilter = params.to ?? "";
+  const qFilter = params.q ?? "";
 
-  const page = Math.max(1, Number(searchParams.page) || 1);
+  const page = Math.max(1, Number(params.page) || 1);
   const size = 25;
   const skip = (page - 1) * size;
 
@@ -71,7 +73,11 @@ export default async function AuditLogPage({
     where.createdAt = { ...(where.createdAt as object), gte: new Date(fromFilter) };
   }
   if (toFilter) {
-    where.createdAt = { ...(where.createdAt as object), lte: new Date(toFilter) };
+    // Batas "sampai tanggal" mencakup sepanjang hari tersebut, bukan hanya
+    // tengah malam. Tanpa ini, catatan pada tanggal yang sama ikut terbuang.
+    const endOfDay = new Date(toFilter);
+    endOfDay.setHours(23, 59, 59, 999);
+    where.createdAt = { ...(where.createdAt as object), lte: endOfDay };
   }
   if (qFilter) {
     where.OR = [
@@ -103,6 +109,20 @@ export default async function AuditLogPage({
   const pages = Math.ceil(total / size);
   const canRead = hasPermission(principal.role, "audit_log:read");
 
+  /** Bangun URL halaman lain dengan filter yang sedang aktif. */
+  const pageUrl = (target: number) => {
+    const query = new URLSearchParams();
+    if (actorFilter) query.set("actor", actorFilter);
+    if (actionFilter) query.set("action", actionFilter);
+    if (resourceFilter) query.set("resource", resourceFilter);
+    if (fromFilter) query.set("from", fromFilter);
+    if (toFilter) query.set("to", toFilter);
+    if (qFilter) query.set("q", qFilter);
+    if (target > 1) query.set("page", String(target));
+    const search = query.toString();
+    return search ? `/admin/audit-log?${search}` : "/admin/audit-log";
+  };
+
   return (
     <div className="space-y-8">
       <section className="space-y-1">
@@ -122,93 +142,96 @@ export default async function AuditLogPage({
       ) : (
         <>
           <section className="space-y-4">
+            {/*
+              Filter memakai form GET sehingga penyaringan berjalan tanpa
+              JavaScript dan URL hasil filter dapat dibagikan.
+            */}
             <form
+              method="get"
               className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 items-end"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const url = new URL(window.location.href);
-                url.searchParams.set("actor", String(fd.get("actor") ?? ""));
-                url.searchParams.set("action", String(fd.get("action") ?? ""));
-                url.searchParams.set("resource", String(fd.get("resource") ?? ""));
-                url.searchParams.set("from", String(fd.get("from") ?? ""));
-                url.searchParams.set("to", String(fd.get("to") ?? ""));
-                url.searchParams.set("q", String(fd.get("q") ?? ""));
-                url.searchParams.set("page", "1");
-                window.location.href = url.toString();
-              }}
             >
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Aktor</Label>
+                <Label htmlFor="actor" className="text-xs uppercase tracking-wide">
+                  Aktor
+                </Label>
                 <input
+                  id="actor"
                   name="actor"
                   defaultValue={actorFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Aksi</Label>
+                <Label htmlFor="action" className="text-xs uppercase tracking-wide">
+                  Aksi
+                </Label>
                 <select
+                  id="action"
                   name="action"
                   defaultValue={actionFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
                   <option value="">Semua aksi</option>
                   {Object.entries(ACTION_LABELS).map(([value, label]) => (
-                    <option key={value} value={value} selected={actionFilter === value}>
+                    <option key={value} value={value}>
                       {label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Resource</Label>
+                <Label htmlFor="resource" className="text-xs uppercase tracking-wide">
+                  Resource
+                </Label>
                 <input
+                  id="resource"
                   name="resource"
                   defaultValue={resourceFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                   placeholder="Mis. News, File"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Dari tanggal</Label>
+                <Label htmlFor="from" className="text-xs uppercase tracking-wide">
+                  Dari tanggal
+                </Label>
                 <input
+                  id="from"
                   name="from"
                   type="date"
                   defaultValue={fromFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Sampai tanggal</Label>
+                <Label htmlFor="to" className="text-xs uppercase tracking-wide">
+                  Sampai tanggal
+                </Label>
                 <input
+                  id="to"
                   name="to"
                   type="date"
                   defaultValue={toFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 />
-              </div>
-              <div className="space-y-2 flex items-end">
-                <Button type="submit">Terapkan</Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    window.location.href = window.location.pathname;
-                  }}
-                >
-                  Reset
-                </Button>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide">Cari</Label>
+                <Label htmlFor="q" className="text-xs uppercase tracking-wide">
+                  Cari
+                </Label>
                 <input
+                  id="q"
                   name="q"
                   defaultValue={qFilter}
-                  className="block w-full border rounded-lg px-3 py-2 text-sm bg-input"
+                  className="block h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                   placeholder="Resource, ID, atau email aktor"
                 />
+              </div>
+              <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-4 xl:col-span-6">
+                <Button type="submit">Terapkan</Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/admin/audit-log">Reset</Link>
+                </Button>
               </div>
             </form>
           </section>
@@ -256,8 +279,8 @@ export default async function AuditLogPage({
                               log.action === "DELETE"
                                 ? "border-destructive/20 bg-destructive/50 text-destructive"
                                 : log.action === "LOGIN_FAILED"
-                                ? "border-amber/20 bg-amber/50 text-amber-700"
-                                : "border-slate/20 bg-slate/50 text-slate-700"
+                                  ? "border-amber/20 bg-amber/50 text-amber-700"
+                                  : "border-slate/20 bg-slate/50 text-slate-700"
                             }`}
                           >
                             {ACTION_LABELS[log.action] ?? log.action}
@@ -284,34 +307,16 @@ export default async function AuditLogPage({
                 </p>
                 <div className="flex gap-2">
                   {page > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set("page", String(page - 1));
-                        window.location.href = url.toString();
-                      }}
-                    >
-                      Sebelumnya
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={pageUrl(page - 1)}>Sebelumnya</Link>
                     </Button>
                   )}
                   <span className="px-2">
                     Halaman {page} dari {pages}
                   </span>
                   {page < pages && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set("page", String(page + 1));
-                        window.location.href = url.toString();
-                      }}
-                    >
-                      Selanjutnya
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={pageUrl(page + 1)}>Berikutnya</Link>
                     </Button>
                   )}
                 </div>

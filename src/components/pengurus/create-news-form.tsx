@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CreateNewsFormProps = {
-  createAction: typeof import("@/modules/news/actions").createNewsAction;
+  createAction: typeof import("@/modules/news/form-actions").createNewsFormAction;
 };
 
 export default function CreateNewsForm({ createAction }: CreateNewsFormProps) {

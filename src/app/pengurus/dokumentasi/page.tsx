@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import {
-  createDocumentationAlbumAction,
-  deleteDocumentationAlbumAction,
-} from "@/modules/documentation/actions";
+  createDocumentationAlbumFormAction,
+  deleteDocumentationAlbumFormAction,
+} from "@/modules/documentation/form-actions";
 import { listDocumentationAlbums } from "@/modules/documentation/queries";
 import CreateAlbumForm from "@/components/pengurus/create-album-form";
-import { Button } from "@/components/ui/button";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Dokumentasi" };
@@ -29,7 +29,7 @@ export default async function DokumentasiPage() {
             Album foto kegiatan. Perubahan dicatat audit log.
           </p>
         </div>
-        <CreateAlbumForm createAction={createDocumentationAlbumAction} />
+        <CreateAlbumForm createAction={createDocumentationAlbumFormAction} />
       </div>
 
       <section className="rounded-lg border">
@@ -50,16 +50,16 @@ export default async function DokumentasiPage() {
                   {formatTanggalPendek(a.eventDate)}
                 </td>
                 <td className="text-right text-muted-foreground">{a.itemCount}</td>
-                <td className="text-right space-x-1">
-                  {canDelete && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => void deleteDocumentationAlbumAction({ id: a.id })}
+                <td className="text-right">
+                  {canDelete ? (
+                    <ConfirmActionForm
+                      action={deleteDocumentationAlbumFormAction}
+                      id={a.id}
+                      confirmMessage={`Hapus album "${a.title}"?`}
                     >
                       Hapus
-                    </Button>
-                  )}
+                    </ConfirmActionForm>
+                  ) : null}
                 </td>
               </tr>
             ))}

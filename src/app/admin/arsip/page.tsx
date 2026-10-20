@@ -7,7 +7,8 @@ import { Filter, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { listOrganizationDocuments } from "@/modules/organization-documents/queries";
-import { deleteOrganizationDocumentFormAction } from "@/modules/organization-documents/actions";
+import { deleteOrganizationDocumentFormAction } from "@/modules/organization-documents/form-actions";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import { ArsipUploadForm } from "@/components/admin/arsip-upload-form";
 import {
   DocumentCategory,
@@ -36,15 +37,16 @@ const ACCESS_LABELS: Record<string, string> = {
 export default async function ArsipPage({
   searchParams,
 }: {
-  searchParams: { category?: string; accessLevel?: string };
+  searchParams: Promise<{ category?: string; accessLevel?: string }>;
 }) {
   const principal = await requirePortalPage("/admin");
+  const params = await searchParams;
 
   const canRead = hasPermission(principal.role, "document:read");
   const canDelete = hasPermission(principal.role, "document:delete");
 
-  const categoryFilter = searchParams.category;
-  const accessLevelFilter = searchParams.accessLevel;
+  const categoryFilter = params.category;
+  const accessLevelFilter = params.accessLevel;
 
   const documents = canRead
     ? await listOrganizationDocuments({
@@ -75,49 +77,54 @@ export default async function ArsipPage({
             <ArsipUploadForm />
 
             <div className="flex flex-wrap gap-4 items-end">
-              <form className="flex flex-wrap gap-2 items-end">
-                <Label className="text-xs uppercase tracking-wide w-full sm:w-auto">
-                  Filter kategori
-                </Label>
-                <select
-                  name="category"
-                  defaultValue={categoryFilter ?? ""}
-                  onChange={(e) => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set("category", e.target.value);
-                    window.location.href = url.toString();
-                  }}
-                  className="border rounded-lg px-3 py-2 text-sm bg-input"
-                >
-                  <option value="">Semua</option>
-                  {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                    <option key={value} value={value} selected={categoryFilter === value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="accessLevel"
-                  defaultValue={accessLevelFilter ?? ""}
-                  onChange={(e) => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set("accessLevel", e.target.value);
-                    window.location.href = url.toString();
-                  }}
-                  className="border rounded-lg px-3 py-2 text-sm bg-input"
-                >
-                  <option value="">Semua akses</option>
-                  {Object.entries(ACCESS_LABELS).map(([value, label]) => (
-                    <option
-                      key={value}
-                      value={value}
-                      selected={accessLevelFilter === value}
-                    >
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <Button type="submit" className="ml-2">
+              {/*
+                Filter memakai form GET sehingga penyaringan bekerja tanpa
+                JavaScript dan URL-nya dapat dibagikan.
+              */}
+              <form method="get" className="flex flex-wrap gap-2 items-end">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="category"
+                    className="text-xs uppercase tracking-wide text-muted-foreground"
+                  >
+                    Kategori
+                  </Label>
+                  <select
+                    id="category"
+                    name="category"
+                    defaultValue={categoryFilter ?? ""}
+                    className="block h-9 rounded-lg border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Semua</option>
+                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="accessLevel"
+                    className="text-xs uppercase tracking-wide text-muted-foreground"
+                  >
+                    Tingkat akses
+                  </Label>
+                  <select
+                    id="accessLevel"
+                    name="accessLevel"
+                    defaultValue={accessLevelFilter ?? ""}
+                    className="block h-9 rounded-lg border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Semua akses</option>
+                    {Object.entries(ACCESS_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button type="submit" className="h-9">
                   Terapkan
                 </Button>
               </form>
@@ -194,14 +201,13 @@ export default async function ArsipPage({
                           Unduh
                         </a>
                         {canDelete && (
-                          <form action={deleteOrganizationDocumentFormAction} onSubmit={(e) => {
-                            if (!confirm(`Hapus dokumen "${doc.title}"?`)) e.preventDefault();
-                          }}>
-                            <input type="hidden" name="id" value={doc.id} />
-                            <Button type="submit" variant="destructive" size="sm" className="h-8 px-2">
-                              Hapus
-                            </Button>
-                          </form>
+                          <ConfirmActionForm
+                            action={deleteOrganizationDocumentFormAction}
+                            id={doc.id}
+                            confirmMessage={`Hapus dokumen "${doc.title}"?`}
+                          >
+                            Hapus
+                          </ConfirmActionForm>
                         )}
                       </td>
                     </tr>

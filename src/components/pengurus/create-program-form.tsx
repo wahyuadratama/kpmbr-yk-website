@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CreateProgramFormProps = {
-  createAction: typeof import("@/modules/programs/actions").createProgramAction;
+  createAction: typeof import("@/modules/programs/form-actions").createProgramFormAction;
 };
 
 export default function CreateProgramForm({ createAction }: CreateProgramFormProps) {

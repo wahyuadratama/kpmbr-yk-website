@@ -3,9 +3,12 @@ import { requirePortalPage } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db/prisma";
 import { EventStatus } from "@/generated/prisma/enums";
-import { createEventAction, deleteEventAction } from "@/modules/events/actions";
+import {
+  createEventFormAction,
+  deleteEventFormAction,
+} from "@/modules/events/form-actions";
 import CreateEventForm from "@/components/pengurus/create-event-form";
-import { Button } from "@/components/ui/button";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Agenda" };
@@ -40,7 +43,7 @@ export default async function AgendaPage() {
             Daftar kegiatan. Perubahan dicatat audit log.
           </p>
         </div>
-        <CreateEventForm createAction={createEventAction} />
+        <CreateEventForm createAction={createEventFormAction} />
       </div>
 
       <section className="rounded-lg border">
@@ -63,12 +66,16 @@ export default async function AgendaPage() {
                   {formatTanggalPendek(e.startsAt)}
                 </td>
                 <td className="text-muted-foreground">{e.location ?? "—"}</td>
-                <td className="text-right space-x-1">
-                  {canDelete && (
-                    <Button size="sm" variant="destructive" onClick={() => void deleteEventAction({ id: e.id })}>
+                <td className="text-right">
+                  {canDelete ? (
+                    <ConfirmActionForm
+                      action={deleteEventFormAction}
+                      id={e.id}
+                      confirmMessage={`Hapus agenda "${e.title}"?`}
+                    >
                       Hapus
-                    </Button>
-                  )}
+                    </ConfirmActionForm>
+                  ) : null}
                 </td>
               </tr>
             ))}

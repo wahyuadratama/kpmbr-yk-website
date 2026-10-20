@@ -8,6 +8,7 @@ import {
 } from "@/lib/actions/users";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
 import {
   Select,
   SelectContent,
@@ -124,18 +125,14 @@ export default async function UsersPage() {
                 <td className="text-muted-foreground">
                   {formatTanggalPendek(u.createdAt)}
                 </td>
-                <td className="text-right space-x-1">
-                  <form
+                <td className="text-right">
+                  <ConfirmActionForm
                     action={deleteAction}
-                    onSubmit={(e) => {
-                      if (!confirm(`Hapus akun ${u.email}?`)) e.preventDefault();
-                    }}
+                    id={u.id}
+                    confirmMessage={`Hapus akun ${u.email}?`}
                   >
-                    <input type="hidden" name="id" value={u.id} />
-                    <Button type="submit" size="sm" variant="destructive">
-                      Hapus
-                    </Button>
-                  </form>
+                    Hapus
+                  </ConfirmActionForm>
                 </td>
               </tr>
             ))}
