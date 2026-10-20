@@ -127,6 +127,11 @@ export const publicNav: NavEntry[] = [
         href: "/berita",
         description: "Kabar terbaru dari organisasi",
       },
+      {
+        title: "Pengumuman",
+        href: "/pengumuman",
+        description: "Informasi resmi dari pengurus",
+      },
     ],
   },
 ];

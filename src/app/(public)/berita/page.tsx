@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { permanentRedirect } from "next/navigation";
 import { Newspaper } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { MockDataNotice } from "@/components/public/mock-data-notice";
@@ -10,7 +11,6 @@ import {
   getNewsCategories,
   getPublishedNews,
 } from "@/modules/news/queries";
-import { cn } from "cn";
 
 type PageProps = {
   searchParams: Promise<{ kategori?: string }>;
@@ -26,20 +26,22 @@ export const metadata: Metadata = {
 /**
  * Daftar berita.
  *
- * Penyaring kategori bekerja di server lewat `?kategori=<slug>` sehingga URL
- * dapat dibagikan dan tidak memerlukan JavaScript. Kategori yang tidak dikenal
- * diperlakukan sebagai "semua".
+ * Penyaring kategori punya URL sendiri di `/berita/kategori/<slug>`. Tautan
+ * lama `?kategori=<slug>` diarahkan permanen ke sana supaya setiap isi hanya
+ * punya satu URL kanonik. Kategori yang tidak dikenal diperlakukan sebagai
+ * "semua".
  */
 export default async function BeritaPage({ searchParams }: PageProps) {
   const { kategori } = await searchParams;
   const categories = await getNewsCategories();
-  const known = categories.some((category) => category.slug === kategori);
-  const active = kategori && known ? kategori : undefined;
+  const known = categories.find((category) => category.slug === kategori);
 
-  const all = await getPublishedNews();
-  const articles = active
-    ? all.filter((article) => article.categorySlug === active)
-    : all;
+  // URL lama → URL kanonik kategori.
+  if (kategori && known) {
+    permanentRedirect(`/berita/kategori/${known.slug}`);
+  }
+
+  const articles = await getPublishedNews();
 
   return (
     <>
@@ -57,36 +59,24 @@ export default async function BeritaPage({ searchParams }: PageProps) {
             <li>
               <Link
                 href="/berita"
-                aria-current={active ? undefined : "true"}
-                className={cn(
-                  "inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors outline-none hover:border-brand/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
-                  !active &&
-                    "border-brand/30 bg-brand-muted text-brand-muted-foreground",
-                )}
+                aria-current="true"
+                className="inline-flex h-8 items-center rounded-full border border-brand/30 bg-brand-muted px-3 text-xs font-medium text-brand-muted-foreground transition-colors outline-none hover:border-brand/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Semua berita
               </Link>
             </li>
             {categories
               .filter((category) => category.count > 0)
-              .map((category) => {
-                const isActive = active === category.slug;
-                return (
-                  <li key={category.slug}>
-                    <Link
-                      href={`/berita?kategori=${category.slug}`}
-                      aria-current={isActive ? "true" : undefined}
-                      className={cn(
-                        "inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors outline-none hover:border-brand/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
-                        isActive &&
-                          "border-brand/30 bg-brand-muted text-brand-muted-foreground",
-                      )}
-                    >
-                      {category.name}
-                    </Link>
-                  </li>
-                );
-              })}
+              .map((category) => (
+                <li key={category.slug}>
+                  <Link
+                    href={`/berita/kategori/${category.slug}`}
+                    className="inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors outline-none hover:border-brand/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
           </ul>
         </nav>
 

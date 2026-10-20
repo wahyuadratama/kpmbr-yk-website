@@ -138,58 +138,60 @@ pengguna, tambahkan di Stage 8 bersama pagination.
 
 ## Stage 3 — Portal Anggota & Pengurus
 
-Status: `PLANNED`
+Status: `IMPLEMENTED`
 
 ```text
-[ ] Dashboard anggota
-[ ] Profil saya (edit data sendiri saja)
-[ ] Dashboard pengurus + modul berita/agenda/proker/dokumentasi/pengumuman
-[ ] Dashboard admin: user, anggota, alumni
-[ ] Upload file ke R2 + validasi (mime, ukuran)
-[ ] Route /api/files/[id] dengan cek access_level
-[ ] Audit DOWNLOAD
+[x] Dashboard anggota
+[x] Profil saya (edit data sendiri saja)
+[x] Dashboard pengurus + modul berita/agenda/proker/dokumentasi/pengumuman
+[x] Dashboard admin: user, anggota, alumni
+[x] Upload file + validasi (mime, ukuran, magic bytes)
+[x] Route /api/files/[id] dengan cek access_level
+[x] Audit DOWNLOAD
 [ ] Notifikasi in-app
 ```
 
 ## Stage 4 — Kartu Anggota Digital
 
-Status: `PLANNED`
+Status: `IMPLEMENTED`
 
 ```text
-[ ] Model digital_member_cards (tokenHash, bukan token)
-[ ] Generate kartu + QR (isi = token opaque)
-[ ] Halaman /member/kartu (QR + preview)
-[ ] /member-card/verify/[token] validasi server
-[ ] Revoke kartu
-[ ] Audit VIEW_SENSITIVE saat verifikasi
+[x] Model digital_member_cards (tokenHash, bukan token)
+[x] Generate kartu + QR (isi = token opaque)
+[x] Halaman /member/kartu (QR + preview)
+[x] /member-card/verify/[token] validasi server
+[x] Revoke kartu
+[x] Audit VIEW_SENSITIVE saat verifikasi
 ```
 
 ## Stage 5 — Sistem Alumni
 
-Status: `PLANNED` — **butuh `REQUIRES DECISION` §8.3**
+Status: `IMPLEMENTED` — direktori publik `/alumni-direktori` memakai
+opt-in `isDirectoryVisible` (default false). Nomor HP dan email tidak
+ditampilkan publik.
 
 ```text
-[ ] Halaman alumni
-[ ] Direktori alumni + filter (nama, angkatan, universitas, prodi, tahun lulus)
-[ ] Honorer isDirectoryVisible — opt-in, default false
-[ ] Nomor HP/email tidak tampil publik
-[ ] Dashboard alumni + edit profil alumni
+[x] Halaman alumni (portal)
+[x] Direktori alumni + filter (nama, angkatan, universitas, prodi, tahun lulus)
+[x] Honorer isDirectoryVisible — opt-in, default false
+[x] Nomor HP/email tidak tampil publik
+[x] Dashboard alumni + edit profil alumni
 [ ] Transisi membership AKTIF → LULUS → role ALUMNI
-[ ] Riwayat keanggotaan tetap tersimpan
+[x] Riwayat keanggotaan tetap tersimpan
 ```
 
 ## Stage 6 — Transparansi Keuangan
 
-Status: `PLANNED` — **butuh `REQUIRES DECISION` §8.4**
+Status: `IMPLEMENTED`
 
 ```text
-[ ] Model financial_categories / financial_transactions / financial_reports
-[ ] Form transaksi (pemasukan, pengeluaran, kategori, bukti)
-[ ] Ringkasan: total pemasukan, total pengeluaran, saldo
-[ ] Laporan bulanan & tahunan
-[ ] Field visibility per laporan
-[ ] Permission enforced di server
-[ ] Audit CREATE/UPDATE/DELETE transaksi
+[x] Model financial_categories / financial_transactions / financial_reports
+[x] Form transaksi (pemasukan, pengeluaran, kategori, bukti)
+[x] Ringkasan: total pemasukan, total pengeluaran, saldo
+[x] Laporan bulanan & tahunan
+[x] Field visibility per laporan
+[x] Permission enforced di server
+[x] Audit CREATE/UPDATE/DELETE transaksi
 ```
 
 Uang `BigInt` → wajib helper `formatRupiah`, dan BigInt tidak boleh
@@ -197,47 +199,72 @@ diproses `JSON.stringify` langsung.
 
 ## Stage 7 — Arsip Organisasi
 
-Status: `PLANNED`
+Status: `IMPLEMENTED`
 
 ```text
-[ ] Model organization_documents (kategori + access level)
-[ ] Upload LPJ, proposal, SK, notulen, AD/ART
-[ ] Browse + filter per kategori
-[ ] Route akses berbasis permission
-[ ] Audit CREATE/UPDATE/DELETE dokumen
+[x] Model organization_documents (kategori + access level)
+[x] Upload LPJ, proposal, SK, notulen, AD/ART
+[x] Browse + filter per kategori
+[x] Route akses berbasis permission
+[x] Audit CREATE/UPDATE/DELETE dokumen
 ```
 
 ## Stage 8 — Audit Log & Dashboard Admin
 
-Status: `PLANNED`
+Status: `IMPLEMENTED`
 
 ```text
-[ ] Halaman /admin/audit-log + filter (actor, aksi, resource, rentang tanggal)
-[ ] Pagination untuk tabel besar
+[x] Halaman /admin/audit-log + filter (aktor, aksi, resource, rentang tanggal)
+[x] Pagination untuk tabel besar
 [ ] Retensi/partisi bila volume sudah nyata
 ```
 
-## Tahap Berikutnya (Tahap 2) — Rincian
+## Stage 9 — Peraian Website Publik
 
-Urutan pengerjaan:
+Status: `IMPLEMENTED`
 
-1. **Seeder 1 akun ADMIN.** `prisma/seed.ts` sengaja tidak menyentuh
-   `users`; akun administrator dibuat terpisah agar tidak ikut ter-commit.
-2. **Helper domain.** `src/lib/utils/format.ts` (rupiah, tanggal Indonesia)
-   sudah ada; belum ada helper slug terpisah karena `slugify` sudah ada di
-   `format.ts`.
-3. **Guard RBAC.** `requireSession()` / `requireRole()` / `requirePermission()`
-   di `src/lib/auth/`.
-4. **Cache tag.** Query publik sudah punya tag; `revalidateTag` +
-   `revalidatePath` dipakai setelah mutasi di dashboard.
-5. **Akses file.** Route `/api/files/[id]` dengan cek `access_level` dan
-   audit `DOWNLOAD`.
+```text
+[x] Navbar: 6 entri (Beranda, Tentang, Organisasi, Kegiatan, Informasi, Gabung)
+[x] Konfigurasi navigasi terpusat di src/lib/navigation.ts
+[x] Dropdown desktop (klik, keyboard, Escape, klik luar)
+[x] Panel menu mobile + accordion
+[x] Active state kategori induk
+[x] Halaman publik /pengumuman
+[x] Halaman /berita/kategori/[slug] + redirect 308 dari ?kategori=
+[x] Halaman /kepengurusan/[periode] (riwayat kepengurusan)
+[x] Perbaikan direktori alumni (form tanpa style -> komponen UI)
+[x] Script check:nav untuk memvalidasi setiap tautan navigasi
+```
 
-Yang **tidak** dikerjakan di tahap 2: keuangan, alumni, kartu digital.
+## Menunggu keputusan organisasi
 
-Status terverifikasi saat Stage 1 selesai: `npm run lint` bersih,
-`npm run typecheck` bersih, `npm run build` sukses, `npm run db:smoke` 8/8,
-`npm run check:text` bersih, 19 route publik 200 dan 4 route tak dikenal 404.
+Dua item TIDAK dapat diselesaikan tanpa keputusan organisasi. Keduanya
+dibiarkan apa adanya — tidak dibuat halaman palsu, data fiktif, atau
+tautan ke halaman kosong.
+
+| Item | Kondisi sekarang | Yang dibutuhkan |
+| ---- | ----------------- | ---------------- |
+| Banner "Data contoh" (`MockDataNotice`) | Muncul di 12 halaman publik. Sengaja, agar data placeholder tidak disalahartikan sebagai data asli. | Data organisasi asli. Setelah tersedia: hapus komponen `MockDataNotice` beserta data seed di `prisma/seed.ts`. |
+| Pendaftaran daring (`/keanggotaan/daftar`) | Belum ada. Pendaftaran manual ke Sekretariat; tombol "Gabung" mengarah ke `/keanggotaan#bergabung`. | Keputusan alur pendaftaran + infra verifikasi email (token, expiry, throttle) agar tidak dibuka abuse. |
+| Riwayat kepemimpinan per periode | Halaman `/kepengurusan/[periode]` sudah ada, tetapi belum ada data periode (`organization_terms` kosong). | Data periode dan penugasan jabatan dari pengurus. |
+| Direktori alumni kosong | Halaman siap, tetapi belum ada anggota yang mengaktifkan `isDirectoryVisible`. | Anggota yang telah lulus memilih menampilkannya. |
+
+## Status Terverifikasi Saat Ini
+
+Audit backend terakhir (lihat git log) menghasilkan bukti:
+
+| Pemeriksaan | Hasil |
+| ----------- | ----- |
+| `npm run lint` | 0 error (5 warning lama) |
+| `npm run typecheck` | bersih |
+| `npm run build` | sukses |
+| `npm run db:smoke` | 8/8 |
+| `npm run test:auth` | 92/92 |
+| `npm run check:text` | bersih |
+| `npm run check:nav` | semua tautan navbar/footer valid |
+| Route publik | 14 route 200, route tak dikenal 404 |
+| Rate limit | berbasis database (tabel `rate_limit_buckets`) |
+| Transaksi mutasi | seluruh mutasi CMS/keuangan memakai `$transaction` |
 
 ## Definition of Done (Umum)
 
@@ -247,9 +274,9 @@ Status terverifikasi saat Stage 1 selesai: `npm run lint` bersih,
 - [x] `npm run db:smoke` 8/8
 - [x] `npm run check:text` bersih
 - [x] Route tak dikenal membalas 404 (bukan 200)
-- [ ] Tidak ada secret di `.env` yang ter-commit
-- [ ] Otorisasi di server, bukan di frontend
-- [ ] Semua mutasi tercatat di `audit_logs`
+- [x] Tidak ada secret di `.env` yang ter-commit (`.env` di-gitignore, `AUTH_SECRET` hanya di `.env`)
+- [x] Otorisasi di server, bukan di frontend (92/92 assertion `test:auth`)
+- [x] Semua mutasi tercatat di `audit_logs`
 - [x] Migration via Prisma, bukan phpMyAdmin
 
 ## Risiko & Mitigasi

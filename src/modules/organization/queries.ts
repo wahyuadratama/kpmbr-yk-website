@@ -9,6 +9,7 @@ import { unstable_cache } from "next/cache";
 import { PositionLevel } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
 import { parseList, parseParagraphs, parseTitledList } from "@/lib/content/markdown";
+import { slugify } from "@/lib/utils/format";
 import type {
   MembershipBenefit,
   MembershipStep,
@@ -208,6 +209,118 @@ export const getCurrentTerm = unstable_cache(
 );
 
 /**
+ * Seluruh periode kepengurusan, terbaru lebih dulu.
+ *
+ * `slug` diturunkan dari `name` memakai `slugify()` supaya URL periode stabil
+ * dan bebas karakter khusus.
+ */
+export const getOrganizationTerms = unstable_cache(
+  async (): Promise<
+    {
+      id: string;
+      name: string;
+      slug: string;
+      startDate: string;
+      endDate: string;
+      isCurrent: boolean;
+    }[]
+  > => {
+    const rows = await db.organizationTerm.findMany({
+      orderBy: { startDate: "desc" },
+      select: {
+        id: true,
+        name: true,
+        startDate: true,
+        endDate: true,
+        isCurrent: true,
+      },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: slugify(row.name),
+      startDate: row.startDate.toISOString(),
+      endDate: row.endDate.toISOString(),
+      isCurrent: row.isCurrent,
+    }));
+  },
+  ["public", "terms", "list"],
+  { revalidate: 3600, tags: ["organization"] },
+);
+
+/**
+ * Satu periode beserta jabatan yang dipegang pada periode tersebut.
+ *
+ * Mengembalikan `null` bila periode tidak ada — pemanggil yang memutuskan
+ * `notFound()`. Penugasan diambil dari `position_assignments`, sehingga riwayat
+ * kepengurusan tetap dapat ditelusuri meski periode sudah berakhir.
+ */
+export const getTermBySlug = unstable_cache(
+  async (
+    slug: string,
+  ): Promise<{
+    name: string;
+    slug: string;
+    startDate: string;
+    endDate: string;
+    isCurrent: boolean;
+    assignments: {
+      positionName: string;
+      positionCode: string;
+      positionDescription: string;
+      holderName: string;
+      memberCode: string;
+      startDate: string;
+      endDate: string | null;
+    }[];
+  } | null> => {
+    const terms = await db.organizationTerm.findMany({
+      select: {
+        id: true,
+        name: true,
+        startDate: true,
+        endDate: true,
+        isCurrent: true,
+      },
+    });
+    const term = terms.find((item) => slugify(item.name) === slug);
+    if (!term) return null;
+
+    const assignments = await db.positionAssignment.findMany({
+      where: { termId: term.id },
+      orderBy: { position: { sortOrder: "asc" } },
+      select: {
+        startDate: true,
+        endDate: true,
+        position: {
+          select: { code: true, name: true, description: true },
+        },
+        member: { select: { fullName: true, memberCode: true } },
+      },
+    });
+
+    return {
+      name: term.name,
+      slug,
+      startDate: term.startDate.toISOString(),
+      endDate: term.endDate.toISOString(),
+      isCurrent: term.isCurrent,
+      assignments: assignments.map((assignment) => ({
+        positionName: assignment.position.name,
+        positionCode: assignment.position.code,
+        positionDescription: assignment.position.description ?? "",
+        holderName: assignment.member.fullName,
+        memberCode: assignment.member.memberCode,
+        startDate: assignment.startDate.toISOString(),
+        endDate: assignment.endDate ? assignment.endDate.toISOString() : null,
+      })),
+    };
+  },
+  ["public", "terms", "bySlug"],
+  { revalidate: 3600, tags: ["organization"] },
+);
+
+/**
  * Angka ringkasan untuk homepage. Semua dihitung dari database; tidak ada
  * angka yang ditulis manual di komponen.
  */
@@ -247,27 +360,3 @@ export const getOrganizationStats = unstable_cache(
   { revalidate: 3600, tags: ["news", "events", "programs", "documentation"] },
 );
 
-/** Pengumuman publik yang belum kedaluwarsa. */
-export const getPublicAnnouncements = unstable_cache(
-  async (): Promise<{ id: string; title: string; body: string[] }[]> => {
-    const now = new Date();
-    const rows = await db.announcement.findMany({
-      where: {
-        deletedAt: null,
-        audience: "PUBLIC",
-        publishedAt: { lte: now },
-        OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
-      },
-      orderBy: [{ priority: "desc" }, { publishedAt: "desc" }],
-      take: 3,
-      select: { id: true, title: true, body: true },
-    });
-    return rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      body: parseParagraphs(row.body),
-    }));
-  },
-  ["public", "announcements"],
-  { revalidate: 600, tags: ["announcements"] },
-);

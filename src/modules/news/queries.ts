@@ -200,3 +200,46 @@ export const getNewsCategories = unstable_cache(
   ["public", "news", "categories"],
   { revalidate: 3600, tags: ["news"] },
 );
+
+/**
+ * Berita terbit dalam satu kategori, dengan pagination.
+ *
+ * Dipakai halaman `/berita/kategori/[slug]`. Query kosong bila kategori tidak
+ * ada — pemanggil yang memutuskan `notFound()`.
+ */
+export const getPublishedNewsByCategory = unstable_cache(
+  async (
+    categorySlug: string,
+    { page = 1, size = 12 }: { page?: number; size?: number } = {},
+  ): Promise<{
+    items: NewsArticle[];
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+  }> => {
+    const where = { ...PUBLISHED, category: { slug: categorySlug } };
+    const skip = (page - 1) * size;
+
+    const [rows, total] = await Promise.all([
+      db.news.findMany({
+        where,
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: size,
+        select: SELECT,
+      }),
+      db.news.count({ where }),
+    ]);
+
+    return {
+      items: rows.map(toNewsArticle),
+      total,
+      page,
+      size,
+      pages: Math.ceil(total / size),
+    };
+  },
+  ["public", "news", "byCategory"],
+  { revalidate: 300, tags: ["news"] },
+);

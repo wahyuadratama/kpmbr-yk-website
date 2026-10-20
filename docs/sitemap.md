@@ -3,23 +3,27 @@
 Struktur URL. Website publik memakai route group `(public)` sehingga tidak
 memunculkan prefix di URL.
 
+Dokumen ini mencerminkan **implementasi aktual**. Halaman yang masih
+direncanakan ditandai `(rencana)` dan TIDAK boleh ditautkan dari navigasi.
+
 ## 1. Website Publik
 
 ```text
 /                                   Homepage
 │
 ├── /berita                         Daftar berita
-│   └── /berita/[slug]              Detail berita
-│       └── /berita/kategori/[slug] Daftar berita per kategori
+│   ├── /berita/[slug]              Detail berita
+│   └── /berita/kategori/[slug]     Daftar berita per kategori
 │
 ├── /tentang                        Tentang KPMBR-YK
-│   ├── /tentang/sejarah            Sejarah organisasi
-│   ├── /tentang/visi-misi          Visi & misi
-│   ├── /tentang/nilai              Nilai organisasi
-│   └── /tentang/identitas          Identitas organisasi
+│   ├── /tentang#sejarah            Sejarah organisasi
+│   ├── /tentang#visi               Visi organisasi
+│   ├── /tentang#misi               Misi organisasi
+│   ├── /tentang#nilai              Nilai organisasi
+│   └── /tentang#pengurus           Struktur & divisi
 │
-├── /kepengurusan                   Struktur kepengurusan
-│   └── /kepengurusan/[periode]     Kepengurusan periode tertentu
+├── /kepengurusan                   Kepengurusan saat ini
+│   └── /kepengurusan/[periode]     Kepengurusan satu periode
 │
 ├── /proker                         Daftar program kerja
 │   └── /proker/[slug]              Detail program kerja
@@ -30,19 +34,32 @@ memunculkan prefix di URL.
 ├── /dokumentasi                    Daftar album
 │   └── /dokumentasi/[slug]         Album + galeri
 │
+├── /berita                         Daftar berita
+├── /pengumuman                     Pengumuman publik
+│
 ├── /keanggotaan                    Cara bergabung, syarat, manfaat
 │   ├── /keanggotaan#persyaratan
 │   ├── /keanggotaan#manfaat
-│   └── /keanggotaan#alur
+│   └── /keanggotaan#bergabung      Cara bergabung (target CTA "Gabung")
+│
+├── /alumni-direktori               Direktori alumni publik
 │
 └── /kontak                         Kontak & lokasi sekretariat
 ```
 
+### Catatan perubahan struktur
+
+| Rute lama | Status sekarang |
+| --------- | ---------------- |
+| `/tentang/sejarah`, `/tentang/visi-misi`, `/tentang/nilai`, `/tentang/identitas` | Digantikan **anchor** pada `/tentang` (`#sejarah`, `#visi`, `#misi`, `#nilai`). Sub-halaman terpisah tidak dibuat agar tidak menduplikasi isi dan ficam mudah dinyalin. |
+| `/berita?kategori=<slug>` | Diarahkan **permanen (308)** ke `/berita/kategori/<slug>`. Satu URL per isi. |
+| `/alumni` | `/alumni` adalah **portal** (butuh login). Direktori **publik** ada di `/alumni-direktori`. |
+| `/admin/dokumen` | Digantikan `/admin/arsip`. |
+
 ### Halaman tambahan yang direncanakan
 
 ```text
-/alumni                            Direktori alumni (tergantung REQUIRES DECISION)
-/keanggotaan/daftar                Pendaftaran online (tahap akhir)
+/keanggotaan/daftar                Pendaftaran online (menunggu keputusan)
 /sitemap.xml                        Dihasilkan otomatis
 /robots.txt                        Dihasilkan otomatis
 ```
@@ -62,11 +79,11 @@ role berbeda.
 /admin                             Dashboard admin
 ├── /admin/anggota                 Manajemen anggota
 ├── /admin/alumni                  Manajemen alumni
-├── /admin/user                    Manajemen user & role
+├── /admin/users                   Manajemen user & role
 ├── /admin/keuangan                Transaksi & laporan keuangan
-├── /admin/dokumen                 Arsip dokumen
-├── /admin/audit-log               Audit log
-└── /admin/pengaturan              Konfigurasi organisasi
+├── /admin/arsip                   Arsip dokumen organisasi
+├── /admin/audit-log               Log audit
+└── /admin/pengaturan              Konfigurasi organisasi (rencana)
 
 /pengurus                          Dashboard pengurus
 ├── /pengurus/berita               Buat & kelola berita
@@ -77,17 +94,11 @@ role berbeda.
 └── /pengurus/anggota              Lihat anggota sesuai permission
 
 /member                            Dashboard anggota
-├── /member/profil                 Profil saya
 ├── /member/kartu                  Kartu anggota digital
-├── /member/agenda                 Agenda
-├── /member/pengumuman             Pengumuman
-├── /member/proker                 Program kerja
-├── /member/dokumentasi            Dokumentasi
-└── /member/keuangan               Laporan keuangan (jika ada permission)
+└── ...                            Profil, agenda, pengumuman (rencana)
 
 /alumni                            Dashboard alumni
-├── /alumni/profil                 Profil alumni saya
-└── /alumni/direktori              Direktori alumni
+└── ...                            Profil alumni saya (rencana)
 ```
 
 ## 4. Verifikasi & Aset
@@ -104,12 +115,13 @@ role berbeda.
 - ID database tidak pernah muncul di URL publik. Recipe: `berita/[slug]`,
   bukan `berita/[id]`.
 - Detail publik yang tidak punya slug → gunakan `notFound()`.
+- Hanya satu URL kanonik per isi. Varian lain diarahkan permanen (308).
 
 ## 5. Aturan Akses
 
 | Prefix | Publik | Butuh login |
 | ------ | :---: | :---------: |
-| `/`, `/berita`, `/tentang`, `/kepengurusan`, `/proker`, `/agenda`, `/dokumentasi`, `/keanggotaan`, `/kontak` | ✅ | ❌ |
+| `/`, `/berita`, `/berita/kategori/*`, `/tentang`, `/kepengurusan`, `/kepengurusan/*`, `/proker`, `/agenda`, `/dokumentasi`, `/pengumuman`, `/keanggotaan`, `/alumni-direktori`, `/kontak` | ✅ | ❌ |
 | `/login` | ✅ | ❌ |
 | `/member`, `/alumni`, `/pengurus`, `/admin` | ❌ | ✅ |
 | `/member-card/verify/[token]` | ✅ (token = otorisasi) | ❌ |
@@ -123,3 +135,13 @@ role berbeda.
   description, Open Graph, dan gambar cover.
 - Structured data JSON-LD: `Organization` (homepage),
   `NewsArticle` (detail berita), `Event` (detail agenda).
+
+## 7. Menunggu keputusan organisasi
+
+Dua hal TIDAK bisa diselesaikan tanpa keputusan organisasi. Keduanya
+dibiarkan apa adanya — tidak dibuat halaman palsu atau data fiktif.
+
+| Item | Kondisi | Yang dibutuhkan |
+| ---- | ------- | ---------------- |
+| Banner "Data contoh" (`MockDataNotice`) | Muncul di 12 halaman publik. Banner ini memang disengaja agar data placeholder tidak disalahartikan sebagai data asli. | Data organisasi asli. Setelah tersedia, hapus komponen `MockDataNotice` beserta data seed `prisma/seed.ts`. |
+| Pendaftaran daring (`/keanggotaan/daftar`) | Belum ada. Pendaftaran saat ini manual ke Sekretariat; tombol "Gabung" mengarah ke bagian "Cara bergabung" di `/keanggotaan`. | Keputusan alur pendaftaran + infra verifikasi email (token, expiry, throttle) agar tidak dibuka abuse. |

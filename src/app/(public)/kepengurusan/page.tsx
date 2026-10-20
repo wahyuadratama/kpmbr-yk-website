@@ -1,10 +1,11 @@
 import * as React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { MockDataNotice } from "@/components/public/mock-data-notice";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getCurrentPositions, getCurrentTerm, getDivisions } from "@/modules/organization/queries";
+import { getCurrentPositions, getCurrentTerm, getDivisions, getOrganizationTerms } from "@/modules/organization/queries";
 import { formatTanggal } from "@/lib/utils/format";
 import { initials } from "@/lib/utils/format";
 
@@ -17,10 +18,11 @@ export const metadata: Metadata = {
 
 /** Struktur kepengurusan dan daftar divisi. */
 export default async function KepengurusanPage() {
-  const [positions, divisions, term] = await Promise.all([
+  const [positions, divisions, term, terms] = await Promise.all([
     getCurrentPositions(),
     getDivisions(),
     getCurrentTerm(),
+    getOrganizationTerms(),
   ]);
   return (
     <>
@@ -104,9 +106,35 @@ export default async function KepengurusanPage() {
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {term
-                  ? `${term.name} berlangsung sejak ${formatTanggal(term.startDate)}. Periode sebelumnya dapat dilihat pada arsip organisasi. Setiap periode memiliki riwayat perubahan yang tersimpan, sehingga transisi kepengurusan dapat ditelusuri.`
-                  : "Periode kepengurusan sebelumnya dapat dilihat pada arsip organisasi. Setiap periode memiliki riwayat perubahan yang tersimpan, sehingga transisi kepengurusan dapat ditelusuri."}
+                  ? `${term.name} berlangsung sejak ${formatTanggal(term.startDate)}. Setiap periode memiliki riwayat perubahan yang tersimpan, sehingga transisi kepengurusan dapat ditelusuri.`
+                  : "Setiap periode memiliki riwayat perubahan yang tersimpan, sehingga transisi kepengurusan dapat ditelusuri."}
               </p>
+
+              {terms.length > 0 ? (
+                <ul className="mt-4 flex flex-col gap-2">
+                  {terms.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={`/kepengurusan/${item.slug}`}
+                        className="flex flex-wrap items-center gap-2 rounded-md px-3 py-2 text-sm outline-none transition-colors hover:bg-background focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <span className="font-medium text-foreground">
+                          {item.name}
+                        </span>
+                        {item.isCurrent ? (
+                          <span className="rounded-full border border-brand/30 bg-brand-muted px-2 py-0.5 text-xs font-medium text-brand-muted-foreground">
+                            Berjalan
+                          </span>
+                        ) : null}
+                        <span className="text-xs text-muted-foreground">
+                          {formatTanggal(item.startDate)} s.d.{" "}
+                          {formatTanggal(item.endDate)}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </section>
           </>
         )}
