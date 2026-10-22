@@ -27,12 +27,13 @@ import { isMaintenanceActive } from "@/lib/settings/website";
 const PRIVATE_PREFIXES = ["/admin", "/pengurus", "/bendahara", "/member", "/alumni", "/api/files"];
 
 /**
- * Prefix yang TIDAK affected oleh mode pemeliharaan.
+ * Prefix yang TIDAK terpengaruh oleh mode pemeliharaan.
  *
  * - Portal privat: guard masing-masing tetap berlaku, sehingga admin dan
  *   pengurus bisa tetap mengelola website saat pemeliharaan.
  * - Endpoint API: punya autentikasi sendiri; mengarahkan API ke halaman HTML
- *   akan merusak klien.
+ *   akan merusak klien. Aset publik (`/api/public-files`) termasuk di sini
+ *   karena hanya melayani berkas ber-`PUBLIC`.
  * - Halaman login dan halaman maintenance itu sendiri.
  */
 const MAINTENANCE_EXEMPT_PREFIXES = [

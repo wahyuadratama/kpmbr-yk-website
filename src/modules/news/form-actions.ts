@@ -33,6 +33,8 @@ export async function createNewsFormAction(
     // Placeholder "Tanpa kategori" bernilai "none" dan harus jadi null.
     categoryId:
       formData.get("categoryId") === "none" ? null : formData.get("categoryId"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     status: formData.get("status") ?? NewsStatus.DRAFT,
   });
 }
@@ -68,6 +70,8 @@ export async function updateNewsFormAction(
     body: formData.get("body"),
     categoryId:
       formData.get("categoryId") === "none" ? null : formData.get("categoryId"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     status: formData.get("status") ?? NewsStatus.DRAFT,
   });
 }

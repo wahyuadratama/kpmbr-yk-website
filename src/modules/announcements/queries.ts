@@ -6,6 +6,7 @@ import {
   AnnouncementPriority,
 } from "@/generated/prisma/enums";
 import { parseParagraphs } from "@/lib/content/markdown";
+import { publicFileSrc } from "@/lib/files/public-url";
 
 export async function listAnnouncements({
   page = 1,
@@ -77,26 +78,34 @@ export const ANNOUNCEMENT_PRIORITY_LABELS: Record<AnnouncementPriority, string> 
  * Hanya pengumuman dengan `audience = PUBLIC`. Pengumuman bertipe ANGGOTA,
  * ALUMNI, atau PENGURUS tidak pernah bocor ke halaman tanpa sesi.
  */
-function publicWhere(now: Date) {
+function publicWhere(now: Date, audience: AnnouncementAudience[]) {
   return {
     deletedAt: null,
-    audience: AnnouncementAudience.PUBLIC,
+    audience: { in: audience },
     publishedAt: { lte: now },
     OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
   };
 }
 
 /**
- * Daftar pengumuman publik dengan pagination.
+ * Daftar pengumuman untuk halaman publik.
  *
- * Dipakai halaman `/pengumuman`. Cache di-tag `announcements` supaya
- * `updateTag` dari server action structuring invalidated setelah pengumuman
- * berubah.
+ * `audience` menentukan siapa yang boleh membaca. Halaman publik tanpa
+ * sesi hanya meminta `PUBLIC`; portal anggota dan alumni menambah audiensnya
+ * masing-masing. Penyaringan terjadi di query, bukan di frontend.
  */
 export const listPublicAnnouncements = unstable_cache(
-  async ({ page = 1, size = 10 }: { page?: number; size?: number } = {}) => {
+  async ({
+    page = 1,
+    size = 10,
+    audience = [AnnouncementAudience.PUBLIC],
+  }: {
+    page?: number;
+    size?: number;
+    audience?: AnnouncementAudience[];
+  } = {}) => {
     const now = new Date();
-    const where = publicWhere(now);
+    const where = publicWhere(now, audience);
     const skip = (page - 1) * size;
 
     const [items, total] = await Promise.all([
@@ -110,8 +119,12 @@ export const listPublicAnnouncements = unstable_cache(
           title: true,
           body: true,
           priority: true,
+          audience: true,
           publishedAt: true,
           expiresAt: true,
+          coverFile: {
+            select: { id: true, storageKey: true, accessLevel: true, altText: true },
+          },
         },
       }),
       db.announcement.count({ where }),
@@ -121,6 +134,8 @@ export const listPublicAnnouncements = unstable_cache(
       items: items.map((item) => ({
         ...item,
         body: parseParagraphs(item.body),
+        coverImageUrl: publicFileSrc(item.coverFile),
+        coverImageAlt: item.coverFile?.altText ?? "",
         expiresSoon:
           item.expiresAt !== null &&
           item.expiresAt.getTime() < now.getTime() + 7 * 24 * 60 * 60 * 1000,

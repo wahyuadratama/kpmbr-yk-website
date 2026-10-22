@@ -24,6 +24,8 @@ export async function createEventFormAction(
     endsAt: formData.get("endsAt") ?? undefined,
     location: formData.get("location"),
     organizer: formData.get("organizer"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     status: formData.get("status") ?? EventStatus.TERJADWAL,
   });
 }

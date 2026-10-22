@@ -6,7 +6,9 @@
  * ditampilkan di halaman publik karena tidak ada yang bisa dilihat.
  */
 import { unstable_cache } from "next/cache";
+import { FileAccessLevel } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
+import { publicFileSrc } from "@/lib/files/public-url";
 import type { DocAlbum } from "@/types/public";
 
 /** Token warna album → kelas Tailwind. Sama seperti berita: DB menyimpan
@@ -29,6 +31,7 @@ const SELECT = {
   eventDate: true,
   photoCount: true,
   accent: true,
+  coverFile: { select: { id: true, storageKey: true, accessLevel: true, altText: true } },
 } as const;
 
 type AlbumRow = {
@@ -38,9 +41,16 @@ type AlbumRow = {
   eventDate: Date;
   photoCount: number;
   accent: string;
+  coverFile: {
+    id: string;
+    storageKey: string;
+    accessLevel: FileAccessLevel;
+    altText: string | null;
+  } | null;
 };
 
 export function toDocAlbum(row: AlbumRow): DocAlbum {
+  const coverImageUrl = publicFileSrc(row.coverFile);
   return {
     slug: row.slug,
     title: row.title,
@@ -48,6 +58,8 @@ export function toDocAlbum(row: AlbumRow): DocAlbum {
     eventDate: row.eventDate.toISOString(),
     photoCount: row.photoCount,
     accent: ALBUM_ACCENT[row.accent] ?? ACCENT_DEFAULT,
+    coverImageUrl,
+    coverImageAlt: coverImageUrl ? (row.coverFile?.altText ?? "") : "",
   };
 }
 

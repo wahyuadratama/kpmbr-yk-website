@@ -13,6 +13,7 @@ import { conflict, notFound } from "@/lib/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { writeAudit } from "@/lib/audit";
 import { AuditAction } from "@/generated/prisma/enums";
+import { parseLocalDateTime } from "@/lib/utils/datetime";
 
 const idSchema = z.object({ id: cuidSchema });
 
@@ -58,11 +59,12 @@ export async function createEventAction(raw: unknown): Promise<ActionResult<{ id
           title: input.title,
           slug,
           description: input.description,
-          startsAt: new Date(input.startsAt),
-          endsAt: input.endsAt ? new Date(input.endsAt) : null,
-          location: input.location,
-          organizer: input.organizer,
-          status: input.status,
+        startsAt: parseLocalDateTime(String(input.startsAt)),
+        endsAt: input.endsAt ? parseLocalDateTime(String(input.endsAt)) : null,
+        location: input.location,
+        organizer: input.organizer,
+        coverFileId: input.coverFileId ?? null,
+        status: input.status,
         },
         select: { id: true, slug: true },
       });
@@ -110,13 +112,22 @@ export async function updateEventAction(raw: unknown): Promise<ActionResult<{ id
           ...(input.title !== undefined ? { title: input.title } : {}),
           ...(slug !== existing.slug ? { slug } : {}),
           ...(input.description !== undefined ? { description: input.description } : {}),
-          ...(input.startsAt !== undefined ? { startsAt: new Date(input.startsAt) } : {}),
+          ...(input.startsAt !== undefined
+            ? { startsAt: parseLocalDateTime(String(input.startsAt)) }
+            : {}),
           ...(input.endsAt !== undefined
-            ? { endsAt: input.endsAt ? new Date(input.endsAt) : null }
+            ? {
+                endsAt: input.endsAt
+                  ? parseLocalDateTime(String(input.endsAt))
+                  : null,
+              }
             : {}),
           ...(input.location !== undefined ? { location: input.location } : {}),
-          ...(input.organizer !== undefined ? { organizer: input.organizer } : {}),
-          ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.organizer !== undefined ? { organizer: input.organizer } : {}),
+        ...(input.coverFileId !== undefined
+          ? { coverFileId: input.coverFileId ?? null }
+          : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
         },
         select: { id: true },
       });

@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +23,24 @@ export function ProgramCard({ program, className }: ProgramCardProps) {
   return (
     <article
       className={cn(
-        "relative flex flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-brand/30",
+        "relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-brand/30",
         className,
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      {program.coverImageUrl ? (
+        <div className="relative aspect-[16/9] w-full overflow-hidden">
+          <Image
+            src={program.coverImageUrl}
+            alt={program.coverImageAlt}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover"
+          />
+        </div>
+      ) : null}
+
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
           {program.division}
         </p>
@@ -77,6 +91,7 @@ export function ProgramCard({ program, className }: ProgramCardProps) {
           aria-label={`Progres ${program.name}`}
           className="mt-2"
         />
+      </div>
       </div>
     </article>
   );

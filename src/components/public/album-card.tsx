@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Images } from "lucide-react";
@@ -13,9 +14,9 @@ type AlbumCardProps = {
 /**
  * Kartu album dokumentasi.
  *
- * Area foto memakai blok warna dan ikon sebagai pengganti foto asli, karena
- * aset foto belum tersedia. Saat aset R2 siap, ganti isi blok atas dengan
- * `next/image`.
+ * Area foto memakai gambar sampul bila sudah diunggah. Selama belum ada, slot
+ * itu diisi blok warna dan ikon sebagai pengganti, sehingga tata letak kartu
+ * tidak bergeser.
  */
 export function AlbumCard({ album, className }: AlbumCardProps) {
   return (
@@ -25,14 +26,23 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
         className,
       )}
     >
-      <div
-        aria-hidden="true"
-        className={cn(
-          "grid aspect-[4/3] w-full place-items-center opacity-90",
-          album.accent,
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
+        {album.coverImageUrl ? (
+          <Image
+            src={album.coverImageUrl}
+            alt={album.coverImageAlt}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div
+            aria-hidden="true"
+            className={cn("grid size-full place-items-center opacity-90", album.accent)}
+          >
+            <Images className="size-8 text-white/80" strokeWidth={1.5} />
+          </div>
         )}
-      >
-        <Images className="size-8 text-white/80" strokeWidth={1.5} />
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">

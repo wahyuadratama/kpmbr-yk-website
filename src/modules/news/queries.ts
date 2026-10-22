@@ -13,7 +13,7 @@ import { unstable_cache } from "next/cache";
 import { FileAccessLevel, NewsStatus } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
 import { parseParagraphs } from "@/lib/content/markdown";
-import { publicAssetUrl } from "@/lib/files/public-url";
+import { publicFileSrc } from "@/lib/files/public-url";
 import type { NewsArticle } from "@/types/public";
 
 /**
@@ -51,6 +51,7 @@ type NewsRow = {
   body: string;
   coverAccent: string;
   coverFile: {
+    id: string;
     storageKey: string;
     accessLevel: FileAccessLevel;
     altText: string | null;
@@ -62,7 +63,7 @@ type NewsRow = {
 };
 
 export function toNewsArticle(row: NewsRow): NewsArticle {
-  const coverImageUrl = publicAssetUrl(row.coverFile);
+  const coverImageUrl = publicFileSrc(row.coverFile);
   return {
     slug: row.slug,
     title: row.title,
@@ -89,7 +90,7 @@ const SELECT = {
   body: true,
   coverAccent: true,
   coverFile: {
-    select: { storageKey: true, accessLevel: true, altText: true },
+    select: { id: true, storageKey: true, accessLevel: true, altText: true },
   },
   authorName: true,
   publishedAt: true,

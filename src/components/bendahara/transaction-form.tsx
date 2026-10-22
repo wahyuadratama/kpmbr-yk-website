@@ -35,12 +35,15 @@ function SubmitButton() {
 export function TransactionForm({
   categories,
   action,
+  defaultDate = "",
 }: {
   categories: { id: string; name: string; type: string }[];
   action: (
     prev: unknown,
     formData: FormData,
   ) => Promise<ActionResult<{ id: string }>>;
+  /** Tanggal default (WIB) dari server, mis. "2026-10-21". */
+  defaultDate?: string;
 }) {
   const [state, formAction] = useActionState(action, {
     ok: false,
@@ -71,7 +74,7 @@ export function TransactionForm({
 
         <div className="space-y-1.5">
           <Label htmlFor="date">Tanggal</Label>
-          <Input id="date" name="date" type="date" required />
+          <Input id="date" name="date" type="date" required defaultValue={defaultDate} />
         </div>
 
         <div className="space-y-1.5">

@@ -24,6 +24,8 @@ export async function createAnnouncementFormAction(
   return createAnnouncementAction({
     title: formData.get("title"),
     body: formData.get("body"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     priority: formData.get("priority") ?? AnnouncementPriority.NORMAL,
     audience: formData.get("audience") ?? AnnouncementAudience.PUBLIC,
   });
@@ -49,6 +51,8 @@ export async function updateAnnouncementFormAction(
     id,
     title: formData.get("title"),
     body: formData.get("body"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     priority: formData.get("priority") ?? AnnouncementPriority.NORMAL,
     audience: formData.get("audience") ?? AnnouncementAudience.PUBLIC,
   });

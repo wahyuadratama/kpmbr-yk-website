@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImagePicker } from "@/components/admin/image-picker";
 
 type CreateEventFormProps = {
   createAction: typeof import("@/modules/events/form-actions").createEventFormAction;
@@ -36,7 +37,7 @@ export default function CreateEventForm({ createAction }: CreateEventFormProps) 
           <div className="space-y-1">
             <Label htmlFor="status">Status</Label>
             <Select name="status" defaultValue={EventStatus.TERJADWAL}>
-              <SelectTrigger>
+                            <SelectTrigger id="status">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
@@ -69,6 +70,7 @@ export default function CreateEventForm({ createAction }: CreateEventFormProps) 
           <Label htmlFor="description">Deskripsi</Label>
           <Textarea id="description" name="description" rows={4} defaultValue="" />
         </div>
+        <ImagePicker name="coverFileId" />
         <Button type="submit">Simpan</Button>
       </form>
     </section>

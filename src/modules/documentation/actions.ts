@@ -13,6 +13,7 @@ import { notFound, conflict } from "@/lib/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { writeAudit } from "@/lib/audit";
 import { AuditAction } from "@/generated/prisma/enums";
+import { parseLocalDate } from "@/lib/utils/datetime";
 
 const idSchema = z.object({ id: cuidSchema });
 
@@ -21,6 +22,7 @@ const albumCreateSchema = z.object({
   slug: z.string().trim().min(1).max(191).optional(),
   description: z.string().trim().max(1000).optional().default(""),
   eventDate: z.string().min(1, "Tanggal acara wajib diisi."),
+  coverFileId: cuidSchema.nullish(),
   accent: accentSchema.default("brand"),
 });
 
@@ -67,9 +69,10 @@ export async function createDocumentationAlbumAction(
         data: {
           title: input.title,
           slug,
-          description: input.description || null,
-          eventDate: new Date(input.eventDate),
-          accent: input.accent,
+        description: input.description || null,
+        eventDate: parseLocalDate(String(input.eventDate)),
+        coverFileId: input.coverFileId ?? null,
+        accent: input.accent,
         },
         select: { id: true, slug: true },
       });
@@ -119,8 +122,13 @@ export async function updateDocumentationAlbumAction(
           ...(input.title !== undefined ? { title: input.title } : {}),
           ...(slug !== existing.slug ? { slug } : {}),
           ...(input.description !== undefined ? { description: input.description ?? null } : {}),
-          ...(input.eventDate !== undefined ? { eventDate: new Date(input.eventDate) } : {}),
-          ...(input.accent !== undefined ? { accent: input.accent } : {}),
+        ...(input.eventDate !== undefined
+          ? { eventDate: parseLocalDate(String(input.eventDate)) }
+          : {}),
+        ...(input.coverFileId !== undefined
+          ? { coverFileId: input.coverFileId ?? null }
+          : {}),
+        ...(input.accent !== undefined ? { accent: input.accent } : {}),
         },
         select: { id: true },
       });

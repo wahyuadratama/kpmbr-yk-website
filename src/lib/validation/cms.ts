@@ -36,6 +36,7 @@ export const newsCreateSchema = z.object({
   excerpt: z.string().trim().max(255, "Ringkasan maksimal 255 karakter.").optional().default(""),
   body: bodySchema,
   categoryId: cuidSchema.nullish(),
+  coverFileId: cuidSchema.nullish(),
   coverAccent: accentSchema.default("brand"),
   isFeatured: z.coerce.boolean().default(false),
   status: z.enum(NewsStatus).default(NewsStatus.DRAFT),
@@ -56,6 +57,7 @@ export const eventCreateSchema = z
     endsAt: isoDateTimeSchema.optional().default(""),
     location: shortText(191),
     organizer: shortText(191),
+    coverFileId: cuidSchema.nullish(),
     status: z.enum(EventStatus).default(EventStatus.TERJADWAL),
   })
   .refine(
@@ -74,6 +76,7 @@ export const programCreateSchema = z.object({
   objective: longText(5_000),
   divisionName: shortText(191),
   picMemberId: cuidSchema.nullish(),
+  coverFileId: cuidSchema.nullish(),
   status: z.enum(ProgramStatus).default(ProgramStatus.DIRANCANG),
   progress: z
     .coerce
@@ -91,6 +94,7 @@ export type ProgramCreateInput = z.infer<typeof programCreateSchema>;
 export const announcementCreateSchema = z.object({
   title: shortText(191),
   body: bodySchema,
+  coverFileId: cuidSchema.nullish(),
   priority: z.enum(AnnouncementPriority).default(AnnouncementPriority.NORMAL),
   audience: z.enum(AnnouncementAudience).default(AnnouncementAudience.PUBLIC),
   publishedAt: isoDateTimeSchema.optional().default(""),

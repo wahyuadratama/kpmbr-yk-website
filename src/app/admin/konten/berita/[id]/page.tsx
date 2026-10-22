@@ -6,6 +6,7 @@ import { PageHeading } from "@/components/dashboard/page-heading";
 import { Panel } from "@/components/dashboard/panel";
 import { NewsEditorForm } from "@/components/admin/news-editor-form";
 import { updateNewsFormAction } from "@/modules/news/form-actions";
+import { coverPreview } from "@/lib/files/public-url";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Sunting Berita" };
@@ -32,6 +33,7 @@ export default async function EditNewsPage({
         categoryId: true,
         createdAt: true,
         updatedAt: true,
+        coverFile: { select: { id: true, accessLevel: true, altText: true } },
       },
     }),
     db.newsCategory.findMany({
@@ -58,6 +60,7 @@ export default async function EditNewsPage({
             body: news.body,
             categoryId: news.categoryId ?? "",
             status: news.status,
+            cover: coverPreview(news.coverFile),
           }}
           categories={categories}
           action={updateNewsFormAction}

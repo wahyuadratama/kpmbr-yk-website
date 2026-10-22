@@ -1,153 +1,195 @@
-import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Megaphone } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  listPublicAnnouncements,
-  type PublicAnnouncementItem,
-} from "@/modules/announcements/queries";
+import { StatusBadge } from "@/components/dashboard/status-badge";
+import { DashboardPagination } from "@/components/dashboard/pagination";
+import { Button } from "@/components/ui/button";
+import { listPublicAnnouncements } from "@/modules/announcements/queries";
 import { formatTanggal } from "@/lib/utils/format";
-import type { AnnouncementPriority } from "@/generated/prisma/enums";
+import { AnnouncementAudience } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = {
   title: "Pengumuman",
   description:
-    "Pengumuman resmi KPMBR-YK untuk anggota, pengurus, dan masyarakat umum: jadwal kegiatan, informasi penting, dan kabar terkini organisasi.",
+    "Pengumuman resmi KPMBR-YK: informasi terbaru dari pengurus untuk masyarakat dan anggota.",
   alternates: { canonical: "/pengumuman" },
 };
 
-/** Jumlah pengumuman per halaman. */
+export const dynamic = "force-dynamic";
+
 const PAGE_SIZE = 10;
 
-/** Gaya badge per prioritas. */
-const PRIORITY_VARIANT: Record<
-  AnnouncementPriority,
-  { label: string; className: string }
-> = {
-  NORMAL: {
-    label: "Biasa",
-    className: "border-border bg-secondary text-secondary-foreground",
+/** Filter audiens yang bisa dipilih pengunjung. */
+const AUDIENCE_FILTERS: { key: string; label: string; audience: AnnouncementAudience[] }[] = [
+  {
+    key: "PUBLIK",
+    label: "Publik",
+    audience: [AnnouncementAudience.PUBLIC],
   },
-  PENTING: {
-    label: "Penting",
-    className: "border-warning/30 bg-warning/10 text-warning-foreground",
+  {
+    key: "SEMUA",
+    label: "Semua pengumuman",
+    audience: [
+      AnnouncementAudience.PUBLIC,
+      AnnouncementAudience.ANGGOTA,
+      AnnouncementAudience.ALUMNI,
+    ],
   },
-  MENDESAK: {
-    label: "Mendekat",
-    className: "border-destructive/30 bg-destructive/10 text-destructive",
-  },
+];
+
+const AUDIENCE_LABEL: Record<string, string> = {
+  PUBLIC: "Publik",
+  ANGGOTA: "Anggota",
+  ALUMNI: "Alumni",
+  PENGURUS: "Pengurus",
 };
 
-function AnnouncementCard({
-  item,
-}: {
-  item: PublicAnnouncementItem;
-}) {
-  const priority = PRIORITY_VARIANT[item.priority] ?? PRIORITY_VARIANT.NORMAL;
-
-  return (
-    <li className="rounded-lg border border-border bg-card p-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge className={priority.className}>{priority.label}</Badge>
-        <time
-          dateTime={new Date(item.publishedAt).toISOString()}
-          className="text-xs text-muted-foreground"
-        >
-          {formatTanggal(item.publishedAt)}
-        </time>
-        {item.expiresAt ? (
-          <span className="text-xs text-muted-foreground">
-            Berlaku sampai {formatTanggal(item.expiresAt)}
-          </span>
-        ) : null}
-      </div>
-
-      <h2 className="mt-3 text-lg font-semibold tracking-tight">{item.title}</h2>
-
-      <div className="mt-2 flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
-        {item.body.map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-      </div>
-    </li>
-  );
-}
-
-/**
- * Daftar pengumuman publik.
- *
- * Hanya pengumuman dengan `audience = PUBLIC` dan belum kedaluwarsa yang
- * tampil — pensyaratannya ditegakkan di query, bukan dengan menyembunyikan di
- * frontend.
- */
 export default async function PengumumanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ audiens?: string; page?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
-  const parsedPage = Number.parseInt(pageParam ?? "1", 10);
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const params = await searchParams;
 
-  const announcements = await listPublicAnnouncements({ page, size: PAGE_SIZE });
-  const { items, total, pages } = announcements;
+  const active =
+    AUDIENCE_FILTERS.find((item) => item.key === params.audiens) ??
+    AUDIENCE_FILTERS[0];
+  const page = Math.max(1, Number(params.page) || 1);
+
+  const { items, total, pages } = await listPublicAnnouncements({
+    page,
+    size: PAGE_SIZE,
+    audience: active.audience,
+  });
+
+  const buildHref = (target: { page?: number; audiens?: string } = {}) => {
+    const query = new URLSearchParams();
+    const nextAudience = target.audiens ?? active.key;
+    if (nextAudience !== "PUBLIK") query.set("audiens", nextAudience);
+    if (target.page && target.page > 1) query.set("page", String(target.page));
+    const search = query.toString();
+    return search ? `/pengumuman?${search}` : "/pengumuman";
+  };
 
   return (
     <>
       <PageHeader
         eyebrow="Informasi"
         title="Pengumuman"
-        description="Kabar resmi dari pengurus: jadwal kegiatan, informasi penting, dan pengumuman organisasi."
+        description="Kabar resmi dari pengurus untuk masyarakat, anggota, dan alumni KPMBR-YK."
       />
 
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <nav aria-label="Saring pengumuman berdasarkan audiens">
+          <ul className="flex flex-wrap gap-2">
+            {AUDIENCE_FILTERS.map((item) => {
+              const isActive = item.key === active.key;
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={buildHref({ audiens: item.key, page: 1 })}
+                    aria-current={isActive ? "true" : undefined}
+                    className={
+                      isActive
+                        ? "inline-flex h-8 items-center rounded-full border border-brand/30 bg-brand-muted px-3 text-xs font-medium text-brand-muted-foreground"
+                        : "inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-brand/30 hover:text-foreground"
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
         {items.length === 0 ? (
           <EmptyState
             icon={Megaphone}
             title="Belum ada pengumuman"
             description="Pengumuman pengurus akan tampil di sini begitu diterbitkan."
-            action={{ label: "Kembali ke beranda", href: "/" }}
+            className="mt-8"
           />
         ) : (
           <>
-            <ul className="flex flex-col gap-4">
+            <ul className="mt-8 flex flex-col gap-4">
               {items.map((item) => (
-                <AnnouncementCard key={item.id} item={item} />
+                <li
+                  key={item.id}
+                  className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-start sm:p-5"
+                >
+                  {item.coverImageUrl ? (
+                    <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-md sm:size-28">
+                      <Image
+                        src={item.coverImageUrl}
+                        alt={item.coverImageAlt}
+                        fill
+                        sizes="(min-width: 640px) 112px, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge tone="info">
+                        {AUDIENCE_LABEL[item.audience] ?? item.audience}
+                      </StatusBadge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTanggal(item.publishedAt)}
+                      </span>
+                      {item.expiresAt ? (
+                        <span className="text-xs text-muted-foreground">
+                          Berlaku sampai {formatTanggal(item.expiresAt)}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <h2 className="mt-2 text-lg font-semibold tracking-tight">
+                      {item.title}
+                    </h2>
+
+                    <div className="mt-2 flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
+                      {item.body.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </div>
+                </li>
               ))}
             </ul>
 
-            {pages > 1 ? (
-              <nav
-                aria-label="Navigasi halaman pengumuman"
-                className="mt-10 flex items-center justify-between gap-3"
-              >
-                <p className="text-sm text-muted-foreground">
-                  Menampilkan {items.length} dari {total} pengumuman
-                </p>
-                <div className="flex gap-2">
-                  {page > 1 ? (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/pengumuman?page=${page - 1}`}>Sebelumnya</Link>
-                    </Button>
-                  ) : null}
-                  {page < pages ? (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/pengumuman?page=${page + 1}`}>Berikutnya</Link>
-                    </Button>
-                  ) : null}
-                </div>
-              </nav>
-            ) : (
-              <p className="mt-10 text-sm text-muted-foreground">
-                Menampilkan {items.length} dari {total} pengumuman
-              </p>
-            )}
+            <div className="mt-10">
+              <DashboardPagination
+                page={page}
+                pages={pages}
+                total={total}
+                size={PAGE_SIZE}
+                buildHref={(target) => buildHref({ page: target })}
+              />
+            </div>
           </>
         )}
+
+        <p className="mt-10 text-sm text-muted-foreground">
+          Ingin membaca pengumuman khusus anggota?{" "}
+          <Link
+            href="/login"
+            className="font-medium underline underline-offset-4"
+          >
+            Masuk ke portal anggota
+          </Link>
+          .
+        </p>
+
+        <div className="mt-6">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/berita">Lihat berita terbaru</Link>
+          </Button>
+        </div>
       </div>
     </>
   );

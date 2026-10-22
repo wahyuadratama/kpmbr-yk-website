@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImagePicker } from "@/components/admin/image-picker";
 
 type CreateProgramFormProps = {
   createAction: typeof import("@/modules/programs/form-actions").createProgramFormAction;
@@ -42,7 +43,7 @@ export default function CreateProgramForm({ createAction }: CreateProgramFormPro
           <div className="space-y-1">
             <Label htmlFor="status">Status</Label>
             <Select name="status" defaultValue={ProgramStatus.DIRANCANG}>
-              <SelectTrigger>
+                            <SelectTrigger id="status">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
@@ -57,7 +58,7 @@ export default function CreateProgramForm({ createAction }: CreateProgramFormPro
           <div className="space-y-1">
             <Label htmlFor="progress">Progres</Label>
             <Select name="progress" defaultValue="0">
-              <SelectTrigger>
+                            <SelectTrigger id="progress">
                 <SelectValue placeholder="0" />
               </SelectTrigger>
               <SelectContent>
@@ -78,6 +79,7 @@ export default function CreateProgramForm({ createAction }: CreateProgramFormPro
           <Label htmlFor="objective">Tujuan</Label>
           <Textarea id="objective" name="objective" rows={3} defaultValue="" />
         </div>
+        <ImagePicker name="coverFileId" />
         <Button type="submit">Simpan</Button>
       </form>
     </section>

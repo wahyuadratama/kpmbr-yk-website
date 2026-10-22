@@ -75,6 +75,7 @@ export async function createNewsAction(
           excerpt: input.excerpt,
           body: input.body,
           categoryId: input.categoryId ?? null,
+          coverFileId: input.coverFileId ?? null,
           coverAccent: input.coverAccent,
           isFeatured: input.isFeatured,
           status: input.status,
@@ -142,6 +143,9 @@ export async function updateNewsAction(
           ...(input.excerpt !== undefined ? { excerpt: input.excerpt } : {}),
           ...(input.body !== undefined ? { body: input.body } : {}),
           ...(input.categoryId !== undefined ? { categoryId: input.categoryId ?? null } : {}),
+          ...(input.coverFileId !== undefined
+            ? { coverFileId: input.coverFileId ?? null }
+            : {}),
           ...(input.coverAccent !== undefined ? { coverAccent: input.coverAccent } : {}),
           ...(input.isFeatured !== undefined ? { isFeatured: input.isFeatured } : {}),
           ...(input.status !== undefined

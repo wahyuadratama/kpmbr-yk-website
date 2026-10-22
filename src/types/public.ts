@@ -47,6 +47,9 @@ export type AgendaEvent = {
   location: string;
   organizer: string;
   status: "TERJADWAL" | "BERLANGSUNG" | "SELESAI" | "DIBATALKAN";
+  /** URL gambar sampul bila ada; `null` berarti pakai blok warna. */
+  coverImageUrl: string | null;
+  coverImageAlt: string;
 };
 
 export type WorkProgram = {
@@ -59,6 +62,9 @@ export type WorkProgram = {
   status: ProgramStatus;
   progress: ProgramProgress;
   timeline: string;
+  /** URL gambar sampul bila ada; `null` berarti kartu tanpa gambar. */
+  coverImageUrl: string | null;
+  coverImageAlt: string;
 };
 
 export type DocAlbum = {
@@ -68,6 +74,9 @@ export type DocAlbum = {
   eventDate: string;
   photoCount: number;
   accent: string;
+  /** URL gambar sampul bila ada; `null` berarti pakai blok warna. */
+  coverImageUrl: string | null;
+  coverImageAlt: string;
 };
 
 export type OrgPosition = {

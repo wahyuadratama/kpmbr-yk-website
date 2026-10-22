@@ -36,7 +36,7 @@ export default function CreateAnnouncementForm({ createAction }: CreateAnnouncem
           <div className="space-y-1">
             <Label htmlFor="priority">Prioritas</Label>
             <Select name="priority" defaultValue={AnnouncementPriority.NORMAL}>
-              <SelectTrigger>
+                            <SelectTrigger id="priority">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
@@ -57,7 +57,7 @@ export default function CreateAnnouncementForm({ createAction }: CreateAnnouncem
           <div className="space-y-1">
             <Label htmlFor="audience">Audiens</Label>
             <Select name="audience" defaultValue="PUBLIC">
-              <SelectTrigger>
+                            <SelectTrigger id="audience">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>

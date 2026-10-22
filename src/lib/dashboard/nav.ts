@@ -40,29 +40,32 @@ export const ADMIN_NAV: DashboardNavGroup[] = [
     label: "Konten",
     items: [
       {
-        title: "Berita & Pengumuman",
+        // Daftar terpadu seluruh konten publik (berita, pengumuman, program
+        // kerja, agenda, dokumentasi) dengan tab dan pencarian.
+        title: "Semua Konten",
         href: "/admin/konten",
         icon: "news",
         permission: "news:read",
       },
       {
-        // Modul program, agenda, dan dokumentasi ditangani satu halaman saja
-        // (dapat diakses admin lewat portal pengurus) agar tidak ada dua
-        // implementasi yang bisa berbeda perilaku.
+        // Modul program, agenda, dan dokumentasi punya route CMS sendiri di
+        // portal admin DAN di portal pengurus. Tampilannya sama (satu
+        // implementasi di src/modules/*/admin-view.tsx), tetapi alamatnya
+        // berbeda supaya navigasi tidak melompat ke portal lain.
         title: "Program Kerja",
-        href: "/pengurus/proker",
+        href: "/admin/proker",
         icon: "folder",
         permission: "program:read",
       },
       {
         title: "Agenda",
-        href: "/pengurus/agenda",
+        href: "/admin/agenda",
         icon: "calendar",
         permission: "event:read",
       },
       {
         title: "Dokumentasi",
-        href: "/pengurus/dokumentasi",
+        href: "/admin/dokumentasi",
         icon: "image",
         permission: "documentation:read",
       },
@@ -95,14 +98,17 @@ export const ADMIN_NAV: DashboardNavGroup[] = [
     label: "Keuangan",
     items: [
       {
+        // Route CMS keuangan punya alamat sendiri di tiap portal. Tampilannya
+        // sama (satu implementasi di src/modules/finance/*-view.tsx), tetapi
+        // alamatnya berbeda supaya navigasi tidak melompat ke portal lain.
         title: "Transaksi",
-        href: "/bendahara/transaksi",
+        href: "/admin/transaksi",
         icon: "wallet",
         permission: "finance:read_transaction",
       },
       {
         title: "Laporan Keuangan",
-        href: "/bendahara/laporan",
+        href: "/admin/laporan",
         icon: "chart",
         permission: "finance:read_summary",
       },

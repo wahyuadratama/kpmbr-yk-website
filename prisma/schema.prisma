@@ -683,6 +683,11 @@ model Announcement {
   priority AnnouncementPriority @default(NORMAL)
   audience AnnouncementAudience @default(PUBLIC)
 
+  /// Gambar sampul. `accessLevel` filenya menentukan apakah gambar boleh
+  /// tampil di halaman publik.
+  coverFileId String? @map("cover_file_id")
+  coverFile   File?   @relation("AnnouncementCover", fields: [coverFileId], references: [id], onDelete: SetNull)
+
   publishedAt DateTime  @default(now()) @map("published_at")
   expiresAt   DateTime? @map("expires_at")
 
@@ -866,6 +871,7 @@ model File {
   eventCovers   Event[]              @relation("EventCover")
   programCovers Program[]            @relation("ProgramCover")
   albumCovers   DocumentationAlbum[] @relation("AlbumCover")
+  announcementCovers Announcement[]  @relation("AnnouncementCover")
 
   documentationItems DocumentationItem[]
   organizationDocuments OrganizationDocument[]

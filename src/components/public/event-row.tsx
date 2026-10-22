@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Calendar, MapPin, Users } from "lucide-react";
@@ -95,6 +96,18 @@ export function EventRow({ event, className }: EventRowProps) {
           </div>
         </dl>
       </div>
+
+      {event.coverImageUrl ? (
+        <div className="relative hidden size-24 shrink-0 overflow-hidden rounded-md sm:block">
+          <Image
+            src={event.coverImageUrl}
+            alt={event.coverImageAlt}
+            fill
+            sizes="96px"
+            className="object-cover"
+          />
+        </div>
+      ) : null}
     </article>
   );
 }

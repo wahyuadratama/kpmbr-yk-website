@@ -36,7 +36,7 @@ export default function CreateNewsForm({ createAction }: CreateNewsFormProps) {
           <div className="space-y-1">
             <Label htmlFor="status">Status</Label>
             <Select name="status" defaultValue={NewsStatus.DRAFT}>
-              <SelectTrigger>
+                            <SelectTrigger id="status">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>

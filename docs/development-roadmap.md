@@ -273,6 +273,56 @@ Catatan penting:
   berhasil di-query. Diperbaiki dan sekarang dicegah oleh
   `npm run check:schema`.
 
+## Stage 11 — Pemisahan Navigasi Publik & CMS
+
+Status: `IMPLEMENTED`
+
+```text
+[x] Navbar publik ditunjuk ke halaman publik yang benar
+    (/proker, /agenda, /dokumentasi, /berita, /pengumuman)
+[x] Tampilan CMS bersama (satu implementasi, banyak route):
+    program, agenda, dokumentasi, transaksi, laporan
+[x] Route CMS milik admin: /admin/proker, /admin/agenda,
+    /admin/dokumentasi, /admin/transaksi, /admin/laporan
+[x] Route CMS untuk pengurus: /pengurus/laporan
+[x] Sidebar admin tidak lagi melompat ke portal pengurus/bendahara
+[x] check:nav memvalidasi navbar publik, footer, dan sidebar dashboard,
+    termasuk asserts bahwa navbar publik tidak menunjuk route privat
+[x] Perbaikan: id pada SelectTrigger agar label form benar-benar terhubung
+```
+
+Catatan: `mainNav` di `site-config.ts` sudah dihapus pada Stage 9 dan
+digantikan `src/lib/navigation.ts` (navbar publik) plus
+`src/lib/dashboard/nav.ts` (sidebar dashboard). Keduanya menunjuk route yang
+sama-sama sudah diverifikasi oleh `npm run check:nav`.
+
+## Stage 12 — Unggah Gambar, Konten Terpadu & Zona Waktu
+
+Status: `IMPLEMENTED`
+
+```text
+[x] Migrasi: Announcement.coverFileId (gambar sampul pengumuman)
+[x] Komponen ImagePicker yang bisa dipakai ulang (5 form CMS)
+[x] Cover image untuk berita, pengumuman, agenda, program kerja, album
+[x] Route publik /api/public-files/<id> untuk aset accessLevel = PUBLIC
+[x] publicFileSrc(): URL R2 bila dikonfigurasi, else route publik
+[x] Halaman "Semua Konten" (/admin/konten): 5 jenis konten dalam satu tabel
+    dengan tab, pencarian, pagination, dan aksi terbitkan/arsipkan/hapus
+[x] Halaman publik /pengumann punya filter audiens (Publik / Semua)
+[x] src/lib/utils/datetime.ts: input datetime-local & date ditafsirkan
+    eksplisit sebagai WIB, tidak bergantung zona server
+[x] Tanggal default form transaksi & album memakai hari WIB
+```
+
+Catatan:
+
+- Gambar sampul hanya boleh memakai berkas `accessLevel = PUBLIC`; berkas
+  non-publik tidak pernah mendapat URL publik.
+- Tanpa `R2_PUBLIC_URL`, gambar dilayani route `/api/public-files/<id>`
+  (tanpa sesi). Setelah R2 terisi, halaman publik memakai URL R2 langsung.
+- Zona waktu organisasi adalah `Asia/Jakarta` (WIB). Semua `DateTime` disimpan
+  sebagai UTC, semua input tanggal dari form ditafsirkan sebagai WIB.
+
 ## Menunggu keputusan organisasi
 
 Dua item TIDAK dapat diselesaikan tanpa keputusan organisasi. Keduanya

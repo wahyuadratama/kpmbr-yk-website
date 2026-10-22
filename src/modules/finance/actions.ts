@@ -27,6 +27,7 @@ import { notFound } from "@/lib/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { writeAudit } from "@/lib/audit";
 import { AuditAction } from "@/generated/prisma/enums";
+import { parseLocalDate } from "@/lib/utils/datetime";
 import { FINANCE_TAGS } from "@/modules/finance/queries";
 
 const idSchema = z.object({ id: cuidSchema });
@@ -163,7 +164,7 @@ export async function createFinancialTransactionAction(
     const created = await db.$transaction(async (tx) => {
       return tx.financialTransaction.create({
         data: {
-          date: new Date(input.date),
+          date: parseLocalDate(String(input.date)),
           amount: input.amount,
           type: input.type,
           categoryId: input.categoryId,

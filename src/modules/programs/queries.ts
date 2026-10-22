@@ -6,8 +6,9 @@
  * supaya UI tidak pernah menampilkan persen yang tidak lazim.
  */
 import { unstable_cache } from "next/cache";
-import { ProgramStatus } from "@/generated/prisma/enums";
+import { FileAccessLevel, ProgramStatus } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
+import { publicFileSrc } from "@/lib/files/public-url";
 import { formatTanggalPendek } from "@/lib/utils/format";
 import type { ProgramProgress, WorkProgram } from "@/types/public";
 
@@ -53,6 +54,7 @@ const SELECT = {
   startDate: true,
   endDate: true,
   picMember: { select: { fullName: true } },
+  coverFile: { select: { id: true, storageKey: true, accessLevel: true, altText: true } },
 } as const;
 
 type ProgramRow = {
@@ -66,21 +68,30 @@ type ProgramRow = {
   startDate: Date | null;
   endDate: Date | null;
   picMember: { fullName: string } | null;
+  coverFile: {
+    id: string;
+    storageKey: string;
+    accessLevel: FileAccessLevel;
+    altText: string | null;
+  } | null;
 };
 
 export function toWorkProgram(row: ProgramRow): WorkProgram {
+  const coverImageUrl = publicFileSrc(row.coverFile);
   return {
     slug: row.slug,
     name: row.name,
     description: row.description,
     objective: row.objective,
     division: row.divisionName,
-    picName: row.picMember?.fullName ?? "Belum ditetapkan",
+    picName: row.picMember?.fullName ?? "Belum ditentukan",
     // Query publik tidak pernah mengambil DRAFT, jadi nilai di sini selalu
     // salah satu dari empat status yang tampil di publik.
     status: row.status as WorkProgram["status"],
     progress: toProgramProgress(row.progress),
     timeline: formatTimeline(row.startDate, row.endDate),
+    coverImageUrl,
+    coverImageAlt: coverImageUrl ? (row.coverFile?.altText ?? "") : "",
   };
 }
 

@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImagePicker } from "@/components/admin/image-picker";
 
 type CreateAlbumFormProps = {
   createAction: typeof import("@/modules/documentation/form-actions").createDocumentationAlbumFormAction;
 };
 
-export default function CreateAlbumForm({ createAction }: CreateAlbumFormProps) {
+export default function CreateAlbumForm({
+  createAction,
+  defaultDate = "",
+}: CreateAlbumFormProps & { defaultDate?: string }) {
   const [state, formAction] = useActionState(
     createAction,
     { ok: false } as ActionResult<{ id: string }>,
@@ -35,7 +39,7 @@ export default function CreateAlbumForm({ createAction }: CreateAlbumFormProps) 
           <div className="space-y-1">
             <Label htmlFor="accent">Aksen warna</Label>
             <Select name="accent" defaultValue="brand">
-              <SelectTrigger>
+                            <SelectTrigger id="accent">
                 <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
@@ -57,12 +61,13 @@ export default function CreateAlbumForm({ createAction }: CreateAlbumFormProps) 
         </div>
         <div className="space-y-1">
           <Label htmlFor="eventDate">Tanggal acara</Label>
-          <Input id="eventDate" name="eventDate" type="date" required defaultValue="" />
+          <Input id="eventDate" name="eventDate" type="date" required defaultValue={defaultDate} />
         </div>
         <div className="space-y-1">
           <Label htmlFor="description">Deskripsi</Label>
           <Textarea id="description" name="description" rows={3} defaultValue="" />
         </div>
+        <ImagePicker name="coverFileId" />
         <Button type="submit">Simpan</Button>
       </form>
     </section>

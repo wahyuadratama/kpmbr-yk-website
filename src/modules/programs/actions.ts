@@ -59,9 +59,10 @@ export async function createProgramAction(raw: unknown): Promise<ActionResult<{ 
           slug,
           description: input.description,
           objective: input.objective,
-          divisionName: input.divisionName,
-          picMemberId: input.picMemberId ?? null,
-          status: input.status,
+        divisionName: input.divisionName,
+        picMemberId: input.picMemberId ?? null,
+        coverFileId: input.coverFileId ?? null,
+        status: input.status,
           progress: input.progress,
           startDate: input.startDate ? new Date(input.startDate) : null,
           endDate: input.endDate ? new Date(input.endDate) : null,
@@ -114,8 +115,11 @@ export async function updateProgramAction(raw: unknown): Promise<ActionResult<{ 
           ...(input.description !== undefined ? { description: input.description } : {}),
           ...(input.objective !== undefined ? { objective: input.objective } : {}),
           ...(input.divisionName !== undefined ? { divisionName: input.divisionName } : {}),
-          ...(input.picMemberId !== undefined ? { picMemberId: input.picMemberId ?? null } : {}),
-          ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.picMemberId !== undefined ? { picMemberId: input.picMemberId ?? null } : {}),
+        ...(input.coverFileId !== undefined
+          ? { coverFileId: input.coverFileId ?? null }
+          : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.progress !== undefined ? { progress: input.progress } : {}),
           ...(input.startDate !== undefined
             ? { startDate: input.startDate ? new Date(input.startDate) : null }

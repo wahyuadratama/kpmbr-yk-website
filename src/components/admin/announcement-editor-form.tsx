@@ -25,6 +25,7 @@ import {
   AnnouncementAudience,
   AnnouncementPriority,
 } from "@/generated/prisma/enums";
+import { ImagePicker, type PickedImage } from "@/components/admin/image-picker";
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -41,6 +42,7 @@ export type AnnouncementEditorValues = {
   body: string;
   priority: string;
   audience: string;
+  cover?: PickedImage | null;
 };
 
 export function AnnouncementEditorForm({
@@ -121,6 +123,8 @@ export function AnnouncementEditorForm({
           placeholder="Isi pengumuman"
         />
       </div>
+
+      <ImagePicker name="coverFileId" initial={initial.cover ?? null} />
 
       {error ? (
         <p role="alert" className="text-xs text-dashboard-danger">

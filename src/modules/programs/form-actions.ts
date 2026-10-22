@@ -23,6 +23,8 @@ export async function createProgramFormAction(
     description: formData.get("description"),
     objective: formData.get("objective"),
     divisionName: formData.get("divisionName"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     status: formData.get("status") ?? ProgramStatus.DIRANCANG,
     progress: formData.get("progress") ?? 0,
   });

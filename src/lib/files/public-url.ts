@@ -42,3 +42,52 @@ export function publicAssetUrl(file: PublicFile | null | undefined): string | nu
   const key = file.storageKey.replace(/^\/+/, "");
   return `${base}/${key}`;
 }
+
+/**
+ * Sumber gambar untuk ditampilkan di halaman publik.
+ *
+ * Urutan pilihan:
+ * 1. URL R2 langsung (kalau `R2_PUBLIC_URL` sudah diisi) — paling cepat,
+ *    dilayani CDN tanpa menyentuh server aplikasi.
+ * 2. Route `/api/public-files/<id>` — dilayani server, hanya untuk file
+ *    ber-`accessLevel = PUBLIC`.
+ *
+ * Berkas non-publik TIDAK PERNAH mendapat URL di sini.
+ */
+export function publicFileSrc(
+  file:
+    | (PublicFile & { id?: string | null })
+    | null
+    | undefined,
+): string | null {
+  if (!file) return null;
+  if (file.accessLevel !== FileAccessLevel.PUBLIC) return null;
+
+  const direct = publicAssetUrl(file);
+  if (direct) return direct;
+
+  if (file.id) return `/api/public-files/${file.id}`;
+  return null;
+}
+
+/**
+ * Data awal untuk `ImagePicker` di dashboard.
+ *
+ * Pratinjau memakai `/api/files/<id>` (bukan route publik) karena pemakai
+ * dashboard selalu punya sesi. Hanya berkas `PUBLIC` yang dapat dilampirkan
+ * sebagai gambar sampul yang tampil di halaman publik.
+ */
+export function coverPreview(
+  file:
+    | { id: string; accessLevel: string; altText: string | null }
+    | null
+    | undefined,
+): { id: string; url: string; altText: string } | null {
+  if (!file) return null;
+  if (file.accessLevel !== FileAccessLevel.PUBLIC) return null;
+  return {
+    id: file.id,
+    url: `/api/files/${file.id}`,
+    altText: file.altText ?? "",
+  };
+}

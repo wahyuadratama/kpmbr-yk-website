@@ -20,6 +20,8 @@ export async function createDocumentationAlbumFormAction(
     title: formData.get("title"),
     description: formData.get("description") ?? undefined,
     eventDate: formData.get("eventDate"),
+    coverFileId:
+      formData.get("coverFileId") === "" ? null : formData.get("coverFileId"),
     accent: formData.get("accent") ?? undefined,
   });
 }

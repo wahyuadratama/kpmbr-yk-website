@@ -86,6 +86,11 @@ permission role.
 │   ├── /admin/konten/berita/[id]         Sunting berita
 │   ├── /admin/konten/pengumuman/baru     Buat pengumuman
 │   └── /admin/konten/pengumuman/[id]     Sunting pengumuman
+├── /admin/proker                 Kelola program kerja
+├── /admin/agenda                 Kelola agenda
+├── /admin/dokumentasi            Kelola dokumentasi
+├── /admin/transaksi              Kelola transaksi keuangan
+├── /admin/laporan                Laporan keuangan + persetujuan
 ├── /admin/anggota                 Manajemen anggota
 ├── /admin/alumni                  Manajemen alumni
 ├── /admin/users                   Manajemen user & role
@@ -104,7 +109,7 @@ permission role.
 ├── /pengurus/agenda               Kelola agenda
 ├── /pengurus/dokumentasi          Kelola dokumentasi
 ├── /pengurus/berita               Kelola berita & pengumuman
-└── /pengurus/laporan              Laporan keuangan (jika berizin)
+└── /pengurus/laporan              Laporan keuangan (read-only)
 
 /member                           Dashboard anggota
 ├── /member/profil                Profil saya
@@ -118,6 +123,28 @@ permission role.
 ├── /alumni/agenda                 Agenda
 └── /alumni/pengumuman             Pengumuman
 ```
+
+### Pemisahan halaman publik dan CMS
+
+| Isi | Halaman publik (tanpa login) | Halaman CMS (butuh login) |
+| --- | --------------------------- | ------------------------- |
+| Program kerja | `/proker`, `/proker/[slug]` | `/admin/proker`, `/pengurus/proker` |
+| Agenda | `/agenda`, `/agenda/[slug]` | `/admin/agenda`, `/pengurus/agenda` |
+| Dokumentasi | `/dokumentasi`, `/dokumentasi/[slug]` | `/admin/dokumentasi`, `/pengurus/dokumentasi` |
+| Berita | `/berita`, `/berita/[slug]`, `/berita/kategori/[slug]` | `/admin/konten` |
+| Pengumuman | `/pengumuman` | `/admin/konten` |
+| Keuangan | — | `/admin/transaksi`, `/admin/laporan`, `/bendahara/*`, `/pengurus/laporan` |
+
+Tampilan CMS program, agenda, dokumentasi, transaksi, dan laporan memakai SATU
+implementasi yang dipakai bersama beberapa portal
+(`src/modules/*/admin-view.tsx` dan `src/modules/finance/*-view.tsx`).
+Bedanya hanya pada route dan guard portalnya, sehingga navigasi tidak pernah
+melompat dari satu portal ke portal lain.
+
+Halaman publik tidak memerlukan login dan hanya menampilkan konten yang
+ditujukan untuk publik. Konten berstatus `DRAFT` (program, agenda, berita)
+tidak pernah keluar ke halaman publik karena penyaringan status dilakukan di
+query.
 
 ### Role dan portal
 

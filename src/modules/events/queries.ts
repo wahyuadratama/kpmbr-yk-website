@@ -6,8 +6,9 @@
  * "agenda terdekat" di homepage.
  */
 import { unstable_cache } from "next/cache";
-import { EventStatus } from "@/generated/prisma/enums";
+import { EventStatus, FileAccessLevel } from "@/generated/prisma/enums";
 import { db } from "@/lib/db/prisma";
+import { publicFileSrc } from "@/lib/files/public-url";
 import type { AgendaEvent } from "@/types/public";
 
 /** Status yang boleh tampil di halaman publik. */
@@ -27,6 +28,7 @@ const SELECT = {
   location: true,
   organizer: true,
   status: true,
+  coverFile: { select: { id: true, storageKey: true, accessLevel: true, altText: true } },
 } as const;
 
 type EventRow = {
@@ -38,9 +40,16 @@ type EventRow = {
   location: string;
   organizer: string;
   status: EventStatus;
+  coverFile: {
+    id: string;
+    storageKey: string;
+    accessLevel: FileAccessLevel;
+    altText: string | null;
+  } | null;
 };
 
 export function toAgendaEvent(row: EventRow): AgendaEvent {
+  const coverImageUrl = publicFileSrc(row.coverFile);
   return {
     slug: row.slug,
     title: row.title,
@@ -52,6 +61,8 @@ export function toAgendaEvent(row: EventRow): AgendaEvent {
     // Query publik tidak pernah mengambil DRAFT, jadi ini tidak pernah
     // mengganti status sebenarnya.
     status: row.status as AgendaEvent["status"],
+    coverImageUrl,
+    coverImageAlt: coverImageUrl ? (row.coverFile?.altText ?? "") : "",
   };
 }
 

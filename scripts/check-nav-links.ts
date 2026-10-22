@@ -1,25 +1,35 @@
 /**
- * Validasi tautan navigasi publik.
+ * Validasi tautan navigasi.
  *
- * Memastikan setiap `href` pada `src/lib/navigation.ts` dan `footerNav` benar-benar
- * menuju route yang ada di `src/app/(public)`, dan setiap anchor memiliki
- * elemen tujuan dengan `id` yang sesuai.
+ * Memastikan:
+ * 1. Setiap tautan navbar publik dan footer menuju route yang benar-benar ada.
+ * 2. Tautan navbar publik TIDAK pernah menuju route privat (CMS/portal).
+ * 3. Setiap tautan sidebar dashboard menuju route yang benar-benar ada.
+ * 4. Tidak ada tautan navbar yang duplikat.
  *
- * Jalankan: npx tsx scripts/check-nav-links.ts
+ * Jalankan: npm run check:nav
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { publicNav, joinCta } from "../src/lib/navigation";
 import { footerNav } from "../src/lib/site-config";
+import {
+  ADMIN_NAV,
+  ALUMNI_NAV,
+  BENDAHARA_NAV,
+  MEMBER_NAV,
+  PENGURUS_NAV,
+} from "../src/lib/dashboard/nav";
 
 const ROOT = process.cwd();
-const PUBLIC_DIR = join(ROOT, "src", "app", "(public)");
+const APP_DIR = join(ROOT, "src", "app");
+const PUBLIC_DIR = join(APP_DIR, "(public)");
 
 type Issue = { href: string; problem: string };
 
 const issues: Issue[] = [];
 
-/** Kumpulkan semua route yang tersedia di app/(public). */
+/** Kumpulkan semua route yang tersedia di bawah sebuah direktori. */
 function collectRoutes(dir: string, prefix = ""): Set<string> {
   const routes = new Set<string>();
 
@@ -37,12 +47,13 @@ function collectRoutes(dir: string, prefix = ""): Set<string> {
     }
 
     if (entry.startsWith("[")) {
-      // Route dinamis: cocokkan sebagai wildcard.
+      // Route dinamis: dicatat sebagai wildcard.
       for (const route of collectRoutes(full, `${prefix}/${entry}`)) routes.add(route);
       continue;
     }
 
     const next = `${prefix}/${entry}`;
+    if (existsSync(join(full, "page.tsx"))) routes.add(next);
     for (const route of collectRoutes(full, next)) routes.add(route);
   }
   return routes;
@@ -62,24 +73,51 @@ function collectIds(file: string): Set<string> {
 
 /** File sumber untuk sebuah path route (untuk memeriksa anchor). */
 function pageFileFor(path: string): string | null {
-  const candidate = join(PUBLIC_DIR, path.replace(/^\//, ""), "page.tsx");
-  return existsSync(candidate) ? candidate : null;
+  const relative = path.replace(/^\//, "");
+  // Halaman publik berada di route group `(public)`, portal di luar group.
+  for (const base of [PUBLIC_DIR, APP_DIR]) {
+    const candidate = join(base, relative, "page.tsx");
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
 }
 
-const routes = collectRoutes(PUBLIC_DIR);
+const allRoutes = collectRoutes(APP_DIR);
+const publicRoutes = collectRoutes(PUBLIC_DIR);
 
-function checkHref(href: string, source: string) {
+function matchesDynamic(route: string, path: string): boolean {
+  const routeParts = route.split("/");
+  const pathParts = path.split("/");
+  if (routeParts.length !== pathParts.length) return false;
+  return routeParts.every((part, i) => part.startsWith("[") || part === pathParts[i]);
+}
+
+function routeExists(path: string, pool: Set<string>): boolean {
+  if (pool.has(path)) return true;
+  return [...pool].some(
+    (route) => route.includes("[") && matchesDynamic(route, path),
+  );
+}
+
+/** Periksa satu `href`. */
+function checkHref(
+  href: string,
+  source: string,
+  options: { mustBePublic?: boolean } = {},
+) {
   const [pathPart, hash] = href.split("#");
   const path = pathPart && pathPart.length > 0 ? pathPart : "/";
 
-  // Route harus ada (izinkan wildcard untuk route dinamis).
-  const exists =
-    routes.has(path) ||
-    [...routes].some((route) => route.includes("[") && matchesDynamic(route, path));
-
-  if (!exists) {
+  if (!routeExists(path, allRoutes)) {
     issues.push({ href, problem: `route tidak ada (${source})` });
     return;
+  }
+
+  if (options.mustBePublic && !routeExists(path, publicRoutes)) {
+    issues.push({
+      href,
+      problem: `navbar publik menunjuk route yang bukan halaman publik (${source})`,
+    });
   }
 
   if (hash) {
@@ -89,30 +127,26 @@ function checkHref(href: string, source: string) {
       return;
     }
     if (!collectIds(file).has(hash)) {
-      issues.push({ href, problem: `id "${hash}" tidak ditemukan di halaman (${source})` });
+      issues.push({
+        href,
+        problem: `id "${hash}" tidak ditemukan di halaman (${source})`,
+      });
     }
   }
 }
 
-function matchesDynamic(route: string, path: string): boolean {
-  const routeParts = route.split("/");
-  const pathParts = path.split("/");
-  if (routeParts.length !== pathParts.length) return false;
-  return routeParts.every((part, i) => part.startsWith("[") || part === pathParts[i]);
-}
-
-console.log("\n=== Validasi tautan navigasi publik ===\n");
-console.log(`Route terdeteksi: ${[...routes].sort().join(", ")}\n`);
+console.log("\n=== Validasi tautan navigasi ===\n");
+console.log(`Route publik : ${[...publicRoutes].sort().join(", ")}\n`);
 
 const seen = new Set<string>();
 
 for (const entry of publicNav) {
   if (entry.type === "link") {
-    checkHref(entry.href, "navbar");
+    checkHref(entry.href, "navbar", { mustBePublic: true });
     seen.add(entry.href);
   } else {
     for (const child of entry.children) {
-      checkHref(child.href, `navbar:${entry.title}`);
+      checkHref(child.href, `navbar:${entry.title}`, { mustBePublic: true });
       if (seen.has(child.href)) {
         issues.push({
           href: child.href,
@@ -124,17 +158,38 @@ for (const entry of publicNav) {
   }
 }
 
-checkHref(joinCta.href, "navbar:CTA");
+checkHref(joinCta.href, "navbar:CTA", { mustBePublic: true });
 seen.add(joinCta.href);
 
 for (const group of footerNav) {
   for (const item of group.items) {
-    checkHref(item.href, `footer:${group.title}`);
+    checkHref(item.href, `footer:${group.title}`, { mustBePublic: true });
+  }
+}
+
+/* ---------------- Sidebar dashboard ---------------- */
+
+const DASHBOARD_NAV = [
+  { source: "admin", groups: ADMIN_NAV },
+  { source: "pengurus", groups: PENGURUS_NAV },
+  { source: "bendahara", groups: BENDAHARA_NAV },
+  { source: "member", groups: MEMBER_NAV },
+  { source: "alumni", groups: ALUMNI_NAV },
+];
+
+for (const { source, groups } of DASHBOARD_NAV) {
+  for (const group of groups) {
+    for (const item of group.items) {
+      checkHref(item.href, `sidebar:${source}`);
+    }
   }
 }
 
 if (issues.length === 0) {
   console.log("OK — semua tautan navigasi menuju route/anchor yang valid.\n");
+  console.log(
+    "     Navbar publik hanya menuju halaman publik; sidebar dashboard menuju route privat.\n",
+  );
   process.exit(0);
 }
 

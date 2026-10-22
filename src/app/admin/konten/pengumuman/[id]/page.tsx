@@ -6,6 +6,7 @@ import { PageHeading } from "@/components/dashboard/page-heading";
 import { Panel } from "@/components/dashboard/panel";
 import { AnnouncementEditorForm } from "@/components/admin/announcement-editor-form";
 import { updateAnnouncementFormAction } from "@/modules/announcements/form-actions";
+import { coverPreview } from "@/lib/files/public-url";
 import { formatTanggalPendek } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Sunting Pengumuman" };
@@ -29,6 +30,7 @@ export default async function EditAnnouncementPage({
       priority: true,
       audience: true,
       updatedAt: true,
+      coverFile: { select: { id: true, accessLevel: true, altText: true } },
     },
   });
 
@@ -49,6 +51,7 @@ export default async function EditAnnouncementPage({
             body: announcement.body,
             priority: announcement.priority,
             audience: announcement.audience,
+            cover: coverPreview(announcement.coverFile),
           }}
           action={updateAnnouncementFormAction}
           submitLabel="Simpan perubahan"

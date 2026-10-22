@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import type { ActionResult } from "@/lib/actions/result";
 import { NewsStatus } from "@/generated/prisma/enums";
+import { ImagePicker, type PickedImage } from "@/components/admin/image-picker";
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -40,6 +41,7 @@ export type NewsEditorValues = {
   body: string;
   categoryId: string;
   status: string;
+  cover?: PickedImage | null;
 };
 
 export function NewsEditorForm({
@@ -124,6 +126,8 @@ export function NewsEditorForm({
           placeholder="Ringkasan singkat yang tampil di daftar berita"
         />
       </div>
+
+      <ImagePicker name="coverFileId" initial={initial.cover ?? null} />
 
       <div className="space-y-1.5">
         <Label htmlFor="body">Isi Berita</Label>

@@ -13,6 +13,7 @@ import { notFound } from "@/lib/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { writeAudit } from "@/lib/audit";
 import { AuditAction } from "@/generated/prisma/enums";
+import { parseLocalDateTime } from "@/lib/utils/datetime";
 
 const idSchema = z.object({ id: cuidSchema });
 
@@ -32,10 +33,15 @@ export async function createAnnouncementAction(
         data: {
           title: input.title,
           body: input.body,
+          coverFileId: input.coverFileId ?? null,
           priority: input.priority,
           audience: input.audience,
-          publishedAt: input.publishedAt ? new Date(input.publishedAt) : new Date(),
-          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+        publishedAt: input.publishedAt
+          ? parseLocalDateTime(String(input.publishedAt))
+          : new Date(),
+        expiresAt: input.expiresAt
+          ? parseLocalDateTime(String(input.expiresAt))
+          : null,
           createdById: principal.userId,
         },
         select: { id: true },
@@ -75,12 +81,25 @@ export async function updateAnnouncementAction(
         data: {
           ...(input.title !== undefined ? { title: input.title } : {}),
           ...(input.body !== undefined ? { body: input.body } : {}),
+          ...(input.coverFileId !== undefined
+            ? { coverFileId: input.coverFileId ?? null }
+            : {}),
           ...(input.priority !== undefined ? { priority: input.priority } : {}),
           ...(input.audience !== undefined ? { audience: input.audience } : {}),
-          ...(input.publishedAt !== undefined
-            ? { publishedAt: new Date(input.publishedAt) }
-            : {}),
-          ...(input.expiresAt !== undefined ? { expiresAt: new Date(input.expiresAt) } : {}),
+        ...(input.publishedAt !== undefined
+          ? {
+              publishedAt: input.publishedAt
+                ? parseLocalDateTime(String(input.publishedAt))
+                : new Date(),
+            }
+          : {}),
+        ...(input.expiresAt !== undefined
+          ? {
+              expiresAt: input.expiresAt
+                ? parseLocalDateTime(String(input.expiresAt))
+                : null,
+            }
+          : {}),
         },
         select: { id: true },
       });
