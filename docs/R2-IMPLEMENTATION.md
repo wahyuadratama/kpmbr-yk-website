@@ -96,12 +96,13 @@ R2_ACCOUNT_ID=<account-id>
 R2_ACCESS_KEY_ID=<access-key>
 R2_SECRET_ACCESS_KEY=<secret-key>
 R2_BUCKET_NAME=kpmbr-yk-uploads
-R2_PUBLIC_URL=https://<bucket>.<account>.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-<hash>.r2.dev
 ```
 
 **Catatan:**
 - Jika semua env vars kosong, fallback ke local storage
-- `R2_PUBLIC_URL` opsional — jika kosong, file publik dilayani via `/api/public-files/<id>`
+- `R2_PUBLIC_URL` adalah URL publik dari R2.dev subdomain atau custom domain (bukan endpoint S3 API)
+- Jika `R2_PUBLIC_URL` kosong, file publik dilayani via `/api/public-files/<id>`
 
 ### Setup R2
 

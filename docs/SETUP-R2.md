@@ -41,16 +41,23 @@ Panduan lengkap untuk mengintegrasikan Cloudflare R2 sebagai penyimpanan file we
 
 Jika ingin file dapat diakses langsung via URL publik (tanpa melalui server):
 
+### Opsi A: R2.dev Subdomain (Recommended)
+
 1. Di Cloudflare Dashboard, buka **R2** → pilih bucket
 2. Klik tab **Settings**
 3. Scroll ke **Public access**
 4. Klik **Allow access** (jika belum diizinkan)
-5. Copy **Public URL** (format: `https://<bucket-name>.<account-id>.r2.cloudflarestorage.com`)
+5. Di bagian **R2.dev subdomain**, klik **Connect domain**
+6. Copy URL yang ditampilkan (format: `https://pub-<hash>.r2.dev`)
 
-Atau gunakan custom domain:
+### Opsi B: Custom Domain
+
 1. Di tab **Settings**, cari **Custom domain**
 2. Klik **Connect domain**
-3. Ikuti instruksi untuk menghubungkan domain Anda
+3. Ikuti instruksi untuk menghubungkan domain Anda (contoh: `files.kpmbr.id`)
+4. Copy URL domain yang sudah dikonfigurasi
+
+**Catatan**: `R2_PUBLIC_URL` adalah URL dasar untuk mengakses file publik, bukan endpoint S3 API (`*.r2.cloudflarestorage.com` hanya untuk S3 API, tidak bisa dibaca publik).
 
 ## Langkah 5: Isi Environment Variables
 
@@ -62,20 +69,31 @@ R2_ACCOUNT_ID=<account-id-dari-langkah-3>
 R2_ACCESS_KEY_ID=<access-key-dari-api-token>
 R2_SECRET_ACCESS_KEY=<secret-key-dari-api-token>
 R2_BUCKET_NAME=kpmbr-yk-uploads
-R2_PUBLIC_URL=https://<bucket-name>.<account-id>.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-<hash>.r2.dev
 ```
 
 **Catatan**:
 - `R2_ACCESS_KEY_ID` dan `R2_SECRET_ACCESS_KEY` adalah bagian dari API token yang dibuat di Langkah 2
-- `R2_PUBLIC_URL` opsional — jika kosong, file publik akan dilayani via `/api/public-files/<id>`
+- `R2_PUBLIC_URL` adalah URL publik dari R2.dev subdomain atau custom domain (dari Langkah 4)
+- Jika `R2_PUBLIC_URL` kosong, file publik akan dilayani via `/api/public-files/<id>`
 - **JANGAN** commit `.env` ke git — sudah masuk `.gitignore`
+
+### Contoh Nilai
+
+```env
+R2_ACCOUNT_ID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+R2_ACCESS_KEY_ID=1234567890abcdef1234567890abcdef
+R2_SECRET_ACCESS_KEY=abcdef1234567890abcdef1234567890abcdef1234
+R2_BUCKET_NAME=kpmbr-yk-uploads
+R2_PUBLIC_URL=https://pub-abc123def456.r2.dev
+```
 
 ## Langkah 6: Verifikasi Konfigurasi
 
 Jalankan script verifikasi:
 
 ```bash
-npm run db:smoke
+npm run verify:r2
 ```
 
 Script ini akan mengecek:

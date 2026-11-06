@@ -151,17 +151,18 @@ Output:
 
 ```env
 # Cloudflare R2 Configuration
-R2_ACCOUNT_ID=<account-id-32-karakter>
-R2_ACCESS_KEY_ID=<access-key-dari-api-token>
-R2_SECRET_ACCESS_KEY=<secret-key-dari-api-token>
+R2_ACCOUNT_ID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+R2_ACCESS_KEY_ID=1234567890abcdef1234567890abcdef
+R2_SECRET_ACCESS_KEY=abcdef1234567890abcdef1234567890abcdef1234
 R2_BUCKET_NAME=kpmbr-yk-uploads
-R2_PUBLIC_URL=https://<bucket>.<account>.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-abc123def456.r2.dev
 ```
 
 **Catatan**:
 - Semua env vars WAJIB diisi untuk production
 - Jika kosong, fallback ke local storage (development mode)
-- `R2_PUBLIC_URL` opsional — jika kosong, file publik dilayani via `/api/public-files/<id>`
+- `R2_PUBLIC_URL` adalah URL publik dari R2.dev subdomain atau custom domain (bukan endpoint S3 API)
+- Jika `R2_PUBLIC_URL` kosong, file publik dilayani via `/api/public-files/<id>`
 
 ## Alur Kerja
 
