@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requirePortalPage } from "@/server/auth/guards";
-import { AgendaAdminView } from "@/server/modules/events/admin-view";
+import { AgendaAdminView } from "@/ui/components/modules/events-admin-view";
 
 export const metadata: Metadata = { title: "Kelola Agenda" };
 export const dynamic = "force-dynamic";

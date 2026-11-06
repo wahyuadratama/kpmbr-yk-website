@@ -11,15 +11,15 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { publicNav, joinCta } from "../src/lib/navigation";
-import { footerNav } from "../src/lib/site-config";
+import { publicNav, joinCta } from "../src/ui/navigation";
+import { footerNav } from "../src/shared/site-config";
 import {
   ADMIN_NAV,
   ALUMNI_NAV,
   BENDAHARA_NAV,
   MEMBER_NAV,
   PENGURUS_NAV,
-} from "../src/lib/dashboard/nav";
+} from "../src/ui/dashboard/nav";
 
 const ROOT = process.cwd();
 const APP_DIR = join(ROOT, "src", "app");

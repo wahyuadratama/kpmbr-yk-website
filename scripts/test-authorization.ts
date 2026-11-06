@@ -12,11 +12,11 @@
  * `forbidden.tsx`, redirect ke `/login`). Itu butuh server berjalan dan cookie
  * sesi, sehingga diverifikasi terpisah lewat penelusuran browser.
  */
-import { db } from "@/lib/db/prisma";
-import { writeAudit } from "@/lib/audit";
-import { __resetRateLimits, checkLoginRateLimit } from "@/lib/rate-limit";
-import { clearFailedLogins, isLocked, registerFailedLogin } from "@/lib/auth/lockout";
-import { readPrincipal } from "@/lib/auth/principal";
+import { db } from "@/server/db/prisma";
+import { writeAudit } from "@/server/audit";
+import { __resetRateLimits, checkLoginRateLimit } from "@/server/rate-limit";
+import { clearFailedLogins, isLocked, registerFailedLogin } from "@/server/auth/lockout";
+import { readPrincipal } from "@/server/auth/principal";
 import {
   canAccess,
   hasPermission,
@@ -24,8 +24,8 @@ import {
   ROLE_PERMISSIONS,
   PENGURUS_DENIED,
   type Role,
-} from "@/lib/auth/permissions";
-import { canEnterPortal, DASHBOARD_BY_ROLE, PORTALS, safeNextPath } from "@/lib/auth/portals";
+} from "@/server/auth/permissions";
+import { canEnterPortal, DASHBOARD_BY_ROLE, PORTALS, safeNextPath } from "@/server/auth/portals";
 import { AuditAction, UserStatus } from "@/generated/prisma/enums";
 
 const ROLES: Role[] = ["ADMIN", "PENGURUS", "ANGGOTA", "ALUMNI"];

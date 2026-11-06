@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requirePortalPage } from "@/server/auth/guards";
-import { LaporanKeuanganAdminView } from "@/server/modules/finance/laporan-view";
+import { LaporanKeuanganAdminView } from "@/ui/components/modules/finance-laporan-view";
 
 export const metadata: Metadata = { title: "Laporan Keuangan" };
 export const dynamic = "force-dynamic";

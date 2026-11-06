@@ -10,7 +10,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentPrincipal } from "@/server/auth/guards";
 import { authorizeFileAccess, contentDisposition } from "@/server/files/access";
-import { readFile } from "@/lib/storage";
+import { readFile } from "@/server/storage";
 import { clientIpFrom, writeAudit } from "@/server/audit";
 import { consumeDbRateLimit } from "@/server/rate-limit-db";
 import { AuditAction } from "@/generated/prisma/enums";

@@ -11,7 +11,7 @@
  */
 import { NextResponse } from "next/server";
 import { db } from "@/server/db/prisma";
-import { readFile } from "@/lib/storage";
+import { readFile } from "@/server/storage";
 import { contentDisposition } from "@/server/files/access";
 import { FileAccessLevel } from "@/generated/prisma/enums";
 import { logSafe, publicMessage } from "@/shared/errors";

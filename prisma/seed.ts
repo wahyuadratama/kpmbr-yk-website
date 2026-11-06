@@ -17,9 +17,9 @@
  *    pengembangan. Akun-akun ini ber-domain `.local` dan tidak boleh dibuat
  *    di produksi. Lihat docs/development-guide.md.
  */
-import { db } from "@/lib/db/prisma";
-import { hashPassword } from "@/lib/auth/password";
-import { ORGANIZATION, siteConfig } from "@/lib/site-config";
+import { db } from "@/server/db/prisma";
+import { hashPassword } from "@/server/auth/password";
+import { ORGANIZATION, siteConfig } from "@/shared/site-config";
 import {
   AnnouncementAudience,
   AnnouncementPriority,

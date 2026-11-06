@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requirePortalPage } from "@/server/auth/guards";
-import { ProgramKerjaAdminView } from "@/server/modules/programs/admin-view";
+import { ProgramKerjaAdminView } from "@/ui/components/modules/programs-admin-view";
 
 export const metadata: Metadata = { title: "Kelola Program Kerja" };
 export const dynamic = "force-dynamic";

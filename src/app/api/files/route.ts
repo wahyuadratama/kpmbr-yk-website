@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { requirePermission } from "@/server/auth/guards";
 import { db } from "@/server/db/prisma";
 import { FileAccessLevel, FileKind } from "@/generated/prisma/enums";
-import { storeFile, kindForMime } from "@/lib/storage";
+import { storeFile, kindForMime } from "@/server/storage";
 import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
 import { clientIpFrom } from "@/server/audit";
