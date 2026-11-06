@@ -16,10 +16,12 @@
  * 2. Tidak menghapus data — hanya upsert
  * 3. Hanya data terverifikasi dari berkas — tidak mengarang
  * 4. Semua data dapat diedit admin lewat CMS/dashboard
+ *
+ * Jalankan dengan: npx ts-node prisma/seed-data-asli.ts
  */
 
-import { db } from "@/server/db/prisma";
-import { EventStatus, NewsStatus, PositionLevel, Role, UserStatus } from "@/generated/prisma/enums";
+import { db } from "../src/lib/db/prisma.js";
+import { EventStatus, NewsStatus, PositionLevel } from "../src/generated/prisma/enums.js";
 
 // Penjaga lingkungan (sama seperti seed.ts)
 function assertSeedAllowed(): void {
@@ -179,24 +181,26 @@ async function seedDivisi(termId: string): Promise<void> {
       update: { fullName: divisi.ketua },
     });
 
-    // Buat assignment untuk ketua divisi
-    await db.positionAssignment.upsert({
+    // Cek apakah assignment sudah ada
+    const existingAssignment = await db.positionAssignment.findFirst({
       where: {
-        positionId_memberId_termId: {
-          positionId: position.id,
-          memberId: ketuaMember.id,
-          termId: termId,
-        },
-      },
-      create: {
         positionId: position.id,
         memberId: ketuaMember.id,
         termId: termId,
-        startDate: PERIODE_2026_2027.startDate,
-        isCurrent: true,
       },
-      update: { isCurrent: true },
     });
+
+    if (!existingAssignment) {
+      await db.positionAssignment.create({
+        data: {
+          positionId: position.id,
+          memberId: ketuaMember.id,
+          termId: termId,
+          startDate: PERIODE_2026_2027.startDate,
+          isCurrent: true,
+        },
+      });
+    }
 
     console.log(`  ✓ ${divisi.name}: ${divisi.ketua} (Ketua)`);
 
@@ -267,9 +271,8 @@ async function seedAgendaPelantikan(): Promise<void> {
       slug: "pelantikan-kabinet-sabilulungan",
       title: "Pelantikan Kabinet Sabilulungan",
       description:
-        "Acara pelantikan Kabinet Sabilulungan untuk periode 2026/2027. Serah terima kepemimpinan dari M. Ramdan Irawan (Nata Prawira XIX) kepada Syachril Gunawan (Nata Prawira XX).",
-      startsAt: new Date("2026-06-06T09:00:00"),
-      endsAt: new Date("2026-06-06T12:00:00"),
+        "Acara pelantikan Kabinet Sabilulungan untuk periode 2026/2027. Serah terima kepemimpinan dari M. Ramdan Irawan (Nata Prawira XIX) kepada Syachril Gunawan (Nata Prawira XX). Tanggal: 6 Juni 2026.",
+      startsAt: new Date("2026-06-06"),
       location: "Yogyakarta",
       organizer: "KPMBR-YK",
       status: EventStatus.SELESAI,
@@ -277,7 +280,7 @@ async function seedAgendaPelantikan(): Promise<void> {
     update: {
       title: "Pelantikan Kabinet Sabilulungan",
       description:
-        "Acara pelantikan Kabinet Sabilulungan untuk periode 2026/2027. Serah terima kepemimpinan dari M. Ramdan Irawan (Nata Prawira XIX) kepada Syachril Gunawan (Nata Prawira XX).",
+        "Acara pelantikan Kabinet Sabilulungan untuk periode 2026/2027. Serah terima kepemimpinan dari M. Ramdan Irawan (Nata Prawira XIX) kepada Syachril Gunawan (Nata Prawira XX). Tanggal: 6 Juni 2026.",
     },
   });
 
