@@ -7,9 +7,7 @@
  * - Development memakai penyimpanan lokal di dalam repo (`.data/uploads`),
  *   yang sudah masuk `.gitignore`.
  * - Produksi diarahkan ke Cloudflare R2 (S3-compatible) melalui env.
- *   Driver R2 sengaja belum diimplementasikan pada tahap ini — lihat
- *   docs/backend-architecture.md § Storage. Titik integrasinya adalah
- *   antarmuka di file ini, jadi tidak ada perubahan pemanggil.
+ *   Implementasi R2 ada di `r2.ts` dengan fallback ke local storage.
  * - Kunci objek (`storageKey`) SELALU dibangun di server dari ID acak, bukan
  *   dari nama file kiriman. Nama file asli hanya disimpan sebagai metadata.
  *   Ini menutup jalur path traversal.
@@ -21,6 +19,7 @@ import path from "node:path";
 import { db } from "@/server/db/prisma";
 import { FileAccessLevel, FileKind } from "@/generated/prisma/enums";
 import { tooLarge, unsupportedMedia } from "@/shared/errors";
+import { uploadToR2, downloadFromR2, deleteFromR2, isR2Configured } from "./r2";
 
 /** Batas ukuran per jenis file (byte). */
 export const MAX_SIZE: Record<FileKind, number> = {
@@ -123,6 +122,13 @@ function buildStorageKey(mime: string, now = new Date()): { key: string; ext: st
  * Menolak file yang: MIME tidak diizinkan, ukuran melebihi batas, atau
  * signature isi tidak cocok dengan MIME yang diklaim (untuk format dengan
  * signature yang dikenal).
+ *
+ * Proses:
+ * 1. Validasi MIME, ukuran, dan signature
+ * 2. Hitung checksum SHA256
+ * 3. Buat storage key dari tanggal + UUID + ekstensi
+ * 4. Upload ke R2 (jika dikonfigurasi) atau simpan lokal
+ * 5. Catat metadata di database
  */
 export async function storeFile(params: {
   data: Buffer;
@@ -156,9 +162,15 @@ export async function storeFile(params: {
 
   const checksum = createHash("sha256").update(data).digest("hex");
   const { key } = buildStorageKey(declaredMime);
-  const target = path.join(LOCAL_ROOT, key);
-  await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, data, { flag: "wx" });
+
+  // Upload ke R2 jika dikonfigurasi, fallback ke local storage
+  const uploadedToR2 = await uploadToR2(key, data, declaredMime);
+  if (!uploadedToR2) {
+    // Fallback ke local storage
+    const target = path.join(LOCAL_ROOT, key);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, data, { flag: "wx" });
+  }
 
   await db.file.create({
     data: {
@@ -177,8 +189,21 @@ export async function storeFile(params: {
   return { storageKey: key, size: data.byteLength, checksum };
 }
 
-/** Baca binary dari penyimpanan. Untuk route unduh yang sudah diotorisasi. */
+/**
+ * Baca binary dari penyimpanan.
+ *
+ * Proses:
+ * 1. Coba download dari R2 (jika dikonfigurasi)
+ * 2. Fallback ke local storage
+ */
 export async function readFile(storageKey: string): Promise<Buffer> {
+  // Coba R2 dulu
+  if (isR2Configured()) {
+    const data = await downloadFromR2(storageKey);
+    if (data) return data;
+  }
+
+  // Fallback ke local storage
   const target = path.join(LOCAL_ROOT, storageKey);
   const normalized = path.normalize(target);
   if (!normalized.startsWith(LOCAL_ROOT)) {
@@ -188,9 +213,29 @@ export async function readFile(storageKey: string): Promise<Buffer> {
   return rf(normalized);
 }
 
-/** Hapus binary. Metadata di-*soft delete*, tidak dihapus dari database. */
+/**
+ * Hapus binary dari penyimpanan.
+ *
+ * Metadata di-*soft delete*, tidak dihapus dari database.
+ * Proses:
+ * 1. Hapus dari R2 (jika dikonfigurasi)
+ * 2. Hapus dari local storage (jika ada)
+ */
 export async function deleteObject(storageKey: string): Promise<void> {
+  // Hapus dari R2
+  if (isR2Configured()) {
+    await deleteFromR2(storageKey);
+  }
+
+  // Hapus dari local storage
   const target = path.normalize(path.join(LOCAL_ROOT, storageKey));
   if (!target.startsWith(LOCAL_ROOT)) return;
   await rm(target, { force: true });
+}
+
+/**
+ * Cek apakah R2 sudah dikonfigurasi.
+ */
+export function isStorageConfigured(): boolean {
+  return isR2Configured();
 }
