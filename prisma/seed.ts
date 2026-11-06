@@ -125,18 +125,15 @@ const NEWS = [
   },
 ];
 
-const PROGRAMS = [
-  {
-    slug: "program-kerja-contoh",
-    name: `[CONTOH] Program kerja ${ORGANIZATION.shortName}`,
-    description:
-      "Contoh program kerja untuk menguji CMS, filter status, dan progres. Ganti lewat dashboard.",
-    objective: "Menguji alur membuat dan memperbarui program kerja.",
-    divisionName: "Belum ditentukan",
-    status: ProgramStatus.DIRANCANG,
-    progress: 0,
-  },
-];
+const PROGRAMS: Array<{
+  slug: string;
+  name: string;
+  description: string;
+  objective: string;
+  divisionName: string;
+  status: ProgramStatus;
+  progress: number;
+}> = [];
 
 const EVENTS = [
   {
@@ -151,15 +148,12 @@ const EVENTS = [
   },
 ];
 
-const ALBUMS = [
-  {
-    slug: "dokumentasi-contoh",
-    title: `[CONTOH] Album dokumentasi ${ORGANIZATION.shortName}`,
-    description:
-      "Contoh album untuk menguji galeri. Jumlah foto sengaja 0 sampai ada item sungguhan.",
-    eventDate: hariLalu(1),
-  },
-];
+const ALBUMS: Array<{
+  slug: string;
+  title: string;
+  description: string;
+  eventDate: Date;
+}> = [];
 
 const ANNOUNCEMENTS = [
   {

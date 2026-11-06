@@ -129,7 +129,7 @@ async function seedOrganizationTerm(): Promise<string> {
   return term.id;
 }
 
-async function seedBPH(): Promise<void> {
+async function seedBPH(termId: string): Promise<void> {
   for (const bph of BPH_DATA) {
     // Pastikan posisi ada
     const position = await db.organizationPosition.upsert({
@@ -152,6 +152,27 @@ async function seedBPH(): Promise<void> {
       },
       update: { fullName: bph.holderName },
     });
+
+    // Cek apakah assignment sudah ada
+    const existingAssignment = await db.positionAssignment.findFirst({
+      where: {
+        positionId: position.id,
+        memberId: member.id,
+        termId: termId,
+      },
+    });
+
+    if (!existingAssignment) {
+      await db.positionAssignment.create({
+        data: {
+          positionId: position.id,
+          memberId: member.id,
+          termId: termId,
+          startDate: PERIODE_2026_2027.startDate,
+          isCurrent: true,
+        },
+      });
+    }
 
     console.log(`  ✓ ${bph.name}: ${bph.holderName}${bph.gelarAdat ? ` (${bph.gelarAdat})` : ""}`);
   }
@@ -301,7 +322,7 @@ async function main(): Promise<void> {
     const termId = await seedOrganizationTerm();
 
     console.log("\n2. BPH (Badan Pengurus Harian):");
-    await seedBPH();
+    await seedBPH(termId);
 
     console.log("\n3. Divisi + Anggota:");
     await seedDivisi(termId);

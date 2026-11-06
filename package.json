@@ -22,6 +22,7 @@
     "db:status": "prisma migrate status",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:seed-asli": "tsx --env-file=.env prisma/seed-data-asli.ts",
+    "db:cleanup-contoh": "tsx --env-file=.env scripts/cleanup-contoh.ts",
     "db:smoke": "tsx --env-file=.env scripts/db-smoke.ts",
     "test:auth": "tsx --env-file=.env scripts/test-authorization.ts",
     "db:studio": "prisma studio"
