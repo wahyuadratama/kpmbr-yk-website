@@ -2,7 +2,6 @@ import * as React from "react";
 import type { Metadata } from "next";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/ui/components/layout/page-header";
-import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
 import { siteConfig } from "@/shared/site-config";
 
 export const metadata: Metadata = {
@@ -31,7 +30,7 @@ export default function KontakPage() {
     {
       icon: MessageCircle,
       label: "Instagram",
-      value: "@kpmbr",
+      value: "@kpmbandungraya.yk",
       href: siteConfig.contact.instagram,
       hint: "Kabar terbaru dan pengumuman cepat.",
     },
@@ -50,9 +49,7 @@ export default function KontakPage() {
         eyebrow="Hubungi Kami"
         title="Kontak"
         description={`Sampaikan pertanyaan, masukan, atau permintaan kerja sama. Sekretariat KPMBR-YK terbuka untuk komunikasi dari pelajar, mahasiswa, kampus, dan mitra.`}
-      >
-        <MockDataNotice scope="alamat sekretariat dan tautan sosial" />
-      </PageHeader>
+      />
 
       <div className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
         <ul className="grid gap-4 sm:grid-cols-2">
