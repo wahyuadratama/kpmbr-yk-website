@@ -18,11 +18,11 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
-import { verifyPassword, fakeVerifyDelay } from "@/lib/auth/password";
-import { isLocked, registerFailedLogin, clearFailedLogins } from "@/lib/auth/lockout";
-import { consumeDbRateLimit } from "@/lib/rate-limit-db";
-import { clientIpFrom, writeAudit } from "@/lib/audit";
+import { db } from "@/server/db/prisma";
+import { verifyPassword, fakeVerifyDelay } from "@/server/auth/password";
+import { isLocked, registerFailedLogin, clearFailedLogins } from "@/server/auth/lockout";
+import { consumeDbRateLimit } from "@/server/rate-limit-db";
+import { clientIpFrom, writeAudit } from "@/server/audit";
 import { AuditAction, UserStatus } from "@/generated/prisma/enums";
 
 const credentialsSchema = z.object({

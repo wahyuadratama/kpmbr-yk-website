@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { BENDAHARA_NAV, filterNavForRole } from "@/lib/dashboard/nav";
+import { requirePortalPage } from "@/server/auth/guards";
+import { DashboardShell } from "@/ui/components/dashboard/dashboard-shell";
+import { BENDAHARA_NAV, filterNavForRole } from "@/ui/dashboard/nav";
 
 /**
  * Layout portal bendahara.

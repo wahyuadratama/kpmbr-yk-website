@@ -6,15 +6,15 @@
  */
 "use server";
 
-import { runAction } from "@/lib/actions/result";
-import { requirePermission } from "@/lib/auth/guards";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { cuidSchema } from "@/lib/validation/common";
+import { runAction } from "@/server/actions/result";
+import { requirePermission } from "@/server/auth/guards";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { cuidSchema } from "@/shared/validation/common";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
-import { writeAudit } from "@/lib/audit";
+import { db } from "@/server/db/prisma";
+import { writeAudit } from "@/server/audit";
 import { AuditAction, Role, UserStatus } from "@/generated/prisma/enums";
-import { forbidden, notFound } from "@/lib/errors";
+import { forbidden, notFound } from "@/shared/errors";
 
 const idSchema = z.object({ id: cuidSchema });
 

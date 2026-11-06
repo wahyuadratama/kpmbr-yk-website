@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ErrorState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/ui/components/ui/empty-state";
 
 /**
  * Error boundary untuk seluruh website publik.

@@ -10,8 +10,8 @@
  *   authentication → authorization → validation → business logic → audit
  */
 import "server-only";
-import { AppError, logSafe, publicMessage, type ErrorCode } from "@/lib/errors";
-import { fieldErrors, type FieldError } from "@/lib/validation/parse";
+import { AppError, logSafe, publicMessage, type ErrorCode } from "@/shared/errors";
+import { fieldErrors, type FieldError } from "@/shared/validation/parse";
 
 export type ActionError = {
   code: ErrorCode;

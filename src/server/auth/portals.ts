@@ -15,7 +15,7 @@
  * - Redirect setelah login harus tetap berada di dalam daftar `PORTALS` di
  *   bawah supaya tidak membuka halaman yang tidak diatur.
  */
-import type { Role } from "@/lib/auth/permissions";
+import type { Role } from "@/server/auth/permissions";
 
 /** Deskripsi singkat tiap portal, dipakai halaman 403. */
 export const PORTALS = {

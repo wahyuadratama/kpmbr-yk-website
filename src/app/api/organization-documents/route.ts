@@ -6,10 +6,10 @@
  * `POST /api/organization-documents` — buat dokumen arsip baru.
  */
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/auth/guards";
-import { listOrganizationDocuments } from "@/modules/organization-documents/queries";
-import { createOrganizationDocumentAction } from "@/modules/organization-documents/actions";
-import { publicMessage, logSafe } from "@/lib/errors";
+import { requirePermission } from "@/server/auth/guards";
+import { listOrganizationDocuments } from "@/server/modules/organization-documents/queries";
+import { createOrganizationDocumentAction } from "@/server/modules/organization-documents/actions";
+import { publicMessage, logSafe } from "@/shared/errors";
 import { z } from "zod";
 import { DocumentCategory, FileAccessLevel } from "@/generated/prisma/enums";
 

@@ -2,13 +2,13 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/ui/components/ui/badge";
+import { Progress } from "@/ui/components/ui/progress";
 import {
   PROGRAM_STATUS_CLASS,
   PROGRAM_STATUS_LABEL,
   type WorkProgram,
-} from "@/types/public";
+} from "@/shared/types/public";
 
 type ProgramCardProps = {
   program: WorkProgram;

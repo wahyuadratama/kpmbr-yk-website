@@ -11,10 +11,10 @@
  */
 import { unstable_cache } from "next/cache";
 import { FileAccessLevel, NewsStatus } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
-import { parseParagraphs } from "@/lib/content/markdown";
-import { publicFileSrc } from "@/lib/files/public-url";
-import type { NewsArticle } from "@/types/public";
+import { db } from "@/server/db/prisma";
+import { parseParagraphs } from "@/shared/content/markdown";
+import { publicFileSrc } from "@/server/files/public-url";
+import type { NewsArticle } from "@/shared/types/public";
 
 /**
  * Token warna cover → kelas gradient. Database hanya menyimpan token, bukan

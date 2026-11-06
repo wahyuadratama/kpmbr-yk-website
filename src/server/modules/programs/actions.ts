@@ -4,14 +4,14 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db, Prisma } from "@/lib/db/prisma";
-import { requirePermission } from "@/lib/auth/guards";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { programCreateSchema } from "@/lib/validation/cms";
-import { cuidSchema } from "@/lib/validation/common";
-import { conflict, notFound } from "@/lib/errors";
-import { runAction, type ActionResult } from "@/lib/actions/result";
-import { writeAudit } from "@/lib/audit";
+import { db, Prisma } from "@/server/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { programCreateSchema } from "@/shared/validation/cms";
+import { cuidSchema } from "@/shared/validation/common";
+import { conflict, notFound } from "@/shared/errors";
+import { runAction, type ActionResult } from "@/server/actions/result";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
 
 const idSchema = z.object({ id: cuidSchema });

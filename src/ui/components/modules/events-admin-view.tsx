@@ -3,18 +3,18 @@
  *
  * Lihat penjelasan pemisahan di `modules/programs/admin-view.tsx`.
  */
-import { db } from "@/lib/db/prisma";
-import { hasPermission } from "@/lib/auth/permissions";
-import type { Principal } from "@/lib/auth/principal";
+import { db } from "@/server/db/prisma";
+import { hasPermission } from "@/server/auth/permissions";
+import type { Principal } from "@/server/auth/principal";
 import { EventStatus } from "@/generated/prisma/enums";
 import {
   createEventFormAction,
   deleteEventFormAction,
-} from "@/modules/events/form-actions";
-import CreateEventForm from "@/components/pengurus/create-event-form";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
+} from "@/server/modules/events/form-actions";
+import CreateEventForm from "@/ui/components/pengurus/create-event-form";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
 import {
   Table,
   TableBody,
@@ -22,8 +22,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { formatTanggalPendek } from "@/lib/utils/format";
+} from "@/ui/components/ui/table";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 const STATUS_LABEL: Record<EventStatus, string> = {
   DRAFT: "Draft",

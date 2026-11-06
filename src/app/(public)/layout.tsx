@@ -1,6 +1,6 @@
 import * as React from "react";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/ui/components/layout/site-footer";
+import { SiteHeader } from "@/ui/components/layout/site-header";
 
 /**
  * Layout website publik.

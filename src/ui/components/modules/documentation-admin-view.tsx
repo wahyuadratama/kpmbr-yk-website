@@ -4,17 +4,17 @@
  *
  * Lihat penjelasan pemisahan di `modules/programs/admin-view.tsx`.
  */
-import { hasPermission } from "@/lib/auth/permissions";
-import type { Principal } from "@/lib/auth/principal";
+import { hasPermission } from "@/server/auth/permissions";
+import type { Principal } from "@/server/auth/principal";
 import {
   createDocumentationAlbumFormAction,
   deleteDocumentationAlbumFormAction,
-} from "@/modules/documentation/form-actions";
-import { listDocumentationAlbums } from "@/modules/documentation/queries";
-import CreateAlbumForm from "@/components/pengurus/create-album-form";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
+} from "@/server/modules/documentation/form-actions";
+import { listDocumentationAlbums } from "@/server/modules/documentation/queries";
+import CreateAlbumForm from "@/ui/components/pengurus/create-album-form";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
 import {
   Table,
   TableBody,
@@ -22,9 +22,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { formatTanggalPendek } from "@/lib/utils/format";
-import { todayInOrganizationTimezone } from "@/lib/utils/datetime";
+} from "@/ui/components/ui/table";
+import { formatTanggalPendek } from "@/shared/utils/format";
+import { todayInOrganizationTimezone } from "@/shared/utils/datetime";
 
 export async function DokumentasiAdminView({
   principal,

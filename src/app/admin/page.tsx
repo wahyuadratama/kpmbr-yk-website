@@ -9,16 +9,16 @@ import {
   Users,
   UserRoundCheck,
 } from "lucide-react";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { db } from "@/lib/db/prisma";
-import { Panel } from "@/components/dashboard/panel";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { MaintenancePanel } from "@/components/admin/maintenance-panel";
-import { setMaintenanceAction } from "@/lib/settings/website-actions";
-import { getMaintenanceState } from "@/lib/settings/website";
-import { formatTanggalPendek, formatJam, toDatetimeLocal } from "@/lib/utils/format";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { db } from "@/server/db/prisma";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatCard } from "@/ui/components/dashboard/stat-card";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { MaintenancePanel } from "@/ui/components/admin/maintenance-panel";
+import { setMaintenanceAction } from "@/server/settings/website-actions";
+import { getMaintenanceState } from "@/server/settings/website";
+import { formatTanggalPendek, formatJam, toDatetimeLocal } from "@/shared/utils/format";
 
 export const metadata: Metadata = {
   title: "Dashboard",

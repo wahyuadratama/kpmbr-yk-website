@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { logoutAction } from "@/app/(auth)/login/actions";
-import { Button } from "@/components/ui/button";
-import { permissionsFor } from "@/lib/auth/permissions";
-import { DASHBOARD_BY_ROLE, PORTALS } from "@/lib/auth/portals";
-import { siteConfig } from "@/lib/site-config";
-import type { Principal } from "@/lib/auth/guards";
+import { Button } from "@/ui/components/ui/button";
+import { permissionsFor } from "@/server/auth/permissions";
+import { DASHBOARD_BY_ROLE, PORTALS } from "@/server/auth/portals";
+import { siteConfig } from "@/shared/site-config";
+import type { Principal } from "@/server/auth/guards";
 import logo from "@/assets/kpmbr-logo.png";
 
 type PortalShellProps = {

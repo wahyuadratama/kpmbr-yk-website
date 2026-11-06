@@ -1,16 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { type ActionResult } from "@/lib/actions/result";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ImagePicker } from "@/components/admin/image-picker";
+import { type ActionResult } from "@/server/actions/result";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Textarea } from "@/ui/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/components/ui/select";
+import { ImagePicker } from "@/ui/components/admin/image-picker";
 
 type CreateAlbumFormProps = {
-  createAction: typeof import("@/modules/documentation/form-actions").createDocumentationAlbumFormAction;
+  createAction: typeof import("@/server/modules/documentation/form-actions").createDocumentationAlbumFormAction;
 };
 
 export default function CreateAlbumForm({

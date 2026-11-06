@@ -11,11 +11,11 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { loginAction } from "./actions";
-import type { ActionResult } from "@/lib/actions/result";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { ActionResult } from "@/server/actions/result";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Alert, AlertDescription } from "@/ui/components/ui/alert";
 
 function SubmitButton() {
   const { pending } = useFormStatus();

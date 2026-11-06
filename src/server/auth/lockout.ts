@@ -13,7 +13,7 @@
  * - Query memakai `updateMany` bersyarat sehingga operasi ini aman dari race
  *   antar request paralel.
  */
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 
 export const MAX_ATTEMPTS = 5;
 export const LOCK_MINUTES = 15;

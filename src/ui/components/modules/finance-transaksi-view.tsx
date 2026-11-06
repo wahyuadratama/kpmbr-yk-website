@@ -5,20 +5,20 @@
  * Satu implementasi tampilan; route hanya berbeda pada guard portalnya dan
  * pada permission yang dimiliki role tersebut.
  */
-import { hasPermission } from "@/lib/auth/permissions";
-import type { Principal } from "@/lib/auth/principal";
-import { db } from "@/lib/db/prisma";
-import { listFinancialTransactions } from "@/modules/finance/queries";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { DashboardPagination } from "@/components/dashboard/pagination";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { TransactionForm } from "@/components/bendahara/transaction-form";
+import { hasPermission } from "@/server/auth/permissions";
+import type { Principal } from "@/server/auth/principal";
+import { db } from "@/server/db/prisma";
+import { listFinancialTransactions } from "@/server/modules/finance/queries";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { DashboardPagination } from "@/ui/components/dashboard/pagination";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { TransactionForm } from "@/ui/components/bendahara/transaction-form";
 import {
   createFinancialTransactionFormAction,
   deleteFinancialTransactionFormAction,
-} from "@/modules/finance/form-actions";
+} from "@/server/modules/finance/form-actions";
 import {
   Table,
   TableBody,
@@ -26,12 +26,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { formatRupiah, formatTanggalPendek } from "@/lib/utils/format";
-import { todayInOrganizationTimezone } from "@/lib/utils/datetime";
+} from "@/ui/components/ui/table";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { formatRupiah, formatTanggalPendek } from "@/shared/utils/format";
+import { todayInOrganizationTimezone } from "@/shared/utils/datetime";
 import { FinancialTransactionType } from "@/generated/prisma/enums";
 
 const PAGE_SIZE = 15;

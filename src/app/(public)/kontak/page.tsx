@@ -1,9 +1,9 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { siteConfig } from "@/lib/site-config";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { siteConfig } from "@/shared/site-config";
 
 export const metadata: Metadata = {
   title: "Kontak",

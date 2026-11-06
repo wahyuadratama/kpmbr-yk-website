@@ -1,15 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
-import { type TransisiResult } from "@/lib/actions/alumni";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { type TransisiResult } from "@/server/actions/alumni";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/components/ui/select";
 import { MembershipEndReason } from "@/generated/prisma/enums";
 
 type TransisiFormProps = {
-  transisiAction: typeof import("@/lib/actions/alumni").transisiKeanggotaanAction;
+  transisiAction: typeof import("@/server/actions/alumni").transisiKeanggotaanAction;
 };
 
 export default function TransisiForm({ transisiAction }: TransisiFormProps) {

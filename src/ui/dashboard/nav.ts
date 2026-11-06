@@ -10,8 +10,8 @@
  * tidak boleh diteruskan dari Server Component ke Client Component. Pemetaan
  * nama ke ikon ada di `src/lib/dashboard/icons.ts`.
  */
-import { hasPermission, type Permission, type Role } from "@/lib/auth/permissions";
-import type { DashboardIconName } from "@/lib/dashboard/icons";
+import { hasPermission, type Permission, type Role } from "@/server/auth/permissions";
+import type { DashboardIconName } from "@/ui/dashboard/icons";
 
 export type DashboardNavItem = {
   title: string;

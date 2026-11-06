@@ -11,9 +11,9 @@
  *   destruktif kita memilih fail-closed: error dilempar. `required: false`
  *   dipakai hanya untuk telemetry (mis. VIEW pada halaman publik).
  */
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { AuditAction } from "@/generated/prisma/enums";
-import { logSafe } from "@/lib/errors";
+import { logSafe } from "@/shared/errors";
 
 /** Kunci yang tidak boleh pernah masuk ke `metadata`. */
 const REDACTED_KEYS = new Set([

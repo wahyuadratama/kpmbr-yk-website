@@ -9,7 +9,7 @@
  * Penyaringan dan pengurutan tetap dilakukan di server lewat query string,
  * sehingga URL dapat dibagikan dan tidak memerlukan JavaScript.
  */
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import {
   AnnouncementAudience,
   AnnouncementPriority,

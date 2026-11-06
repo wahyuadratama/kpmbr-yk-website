@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { DokumentasiAdminView } from "@/modules/documentation/admin-view";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { DokumentasiAdminView } from "@/server/modules/documentation/admin-view";
 
 export const metadata: Metadata = { title: "Dokumentasi" };
 export const dynamic = "force-dynamic";

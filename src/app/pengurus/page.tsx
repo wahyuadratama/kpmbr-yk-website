@@ -6,14 +6,14 @@ import {
   Image,
   Newspaper,
 } from "lucide-react";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { formatTanggalPendek } from "@/lib/utils/format";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatCard } from "@/ui/components/dashboard/stat-card";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { formatTanggalPendek } from "@/shared/utils/format";
 import { EventStatus, NewsStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Dasbor Pengurus" };

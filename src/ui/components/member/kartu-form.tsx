@@ -1,17 +1,17 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@/components/ui/button";
-import KartuQr from "@/components/member/kartu-qr";
+import { Button } from "@/ui/components/ui/button";
+import KartuQr from "@/ui/components/member/kartu-qr";
 import {
   type DigitalCardResult,
   type DigitalCardData,
-} from "@/lib/actions/digital-member-card";
+} from "@/server/actions/digital-member-card";
 
 type KartuFormProps = {
   card: DigitalCardData | null;
-  generateAction: typeof import("@/lib/actions/digital-member-card").generateDigitalCardAction;
-  revokeAction: typeof import("@/lib/actions/digital-member-card").revokeDigitalCardAction;
+  generateAction: typeof import("@/server/actions/digital-member-card").generateDigitalCardAction;
+  revokeAction: typeof import("@/server/actions/digital-member-card").revokeDigitalCardAction;
 };
 
 export default function KartuForm({

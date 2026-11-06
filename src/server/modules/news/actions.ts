@@ -11,16 +11,16 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db, Prisma } from "@/lib/db/prisma";
-import { requirePermission } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { newsCreateSchema, newsUpdateSchema } from "@/lib/validation/cms";
-import { cuidSchema } from "@/lib/validation/common";
-import { slugify } from "@/lib/utils/format";
-import { conflict, forbidden, notFound } from "@/lib/errors";
-import { runAction, type ActionResult } from "@/lib/actions/result";
-import { writeAudit } from "@/lib/audit";
+import { db, Prisma } from "@/server/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { newsCreateSchema, newsUpdateSchema } from "@/shared/validation/cms";
+import { cuidSchema } from "@/shared/validation/common";
+import { slugify } from "@/shared/utils/format";
+import { conflict, forbidden, notFound } from "@/shared/errors";
+import { runAction, type ActionResult } from "@/server/actions/result";
+import { writeAudit } from "@/server/audit";
 import { AuditAction, NewsStatus } from "@/generated/prisma/enums";
 
 const idSchema = z.object({ id: cuidSchema });

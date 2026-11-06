@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
 import {
   WebsiteSettingsForm,
   type WebsiteSettingsValues,
-} from "@/components/admin/website-settings-form";
-import { updateWebsiteSettingsAction } from "@/lib/settings/website-actions";
-import { MaintenancePanel } from "@/components/admin/maintenance-panel";
-import { setMaintenanceAction } from "@/lib/settings/website-actions";
-import { getMaintenanceState } from "@/lib/settings/website";
-import { toDatetimeLocal } from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/ui/components/admin/website-settings-form";
+import { updateWebsiteSettingsAction } from "@/server/settings/website-actions";
+import { MaintenancePanel } from "@/ui/components/admin/maintenance-panel";
+import { setMaintenanceAction } from "@/server/settings/website-actions";
+import { getMaintenanceState } from "@/server/settings/website";
+import { toDatetimeLocal } from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 export const metadata: Metadata = { title: "Pengaturan Website" };
 export const dynamic = "force-dynamic";

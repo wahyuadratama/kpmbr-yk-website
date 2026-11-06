@@ -9,8 +9,8 @@ import {
   createAnnouncementAction,
   deleteAnnouncementAction,
   updateAnnouncementAction,
-} from "@/modules/announcements/actions";
-import type { ActionResult } from "@/lib/actions/result";
+} from "@/server/modules/announcements/actions";
+import type { ActionResult } from "@/server/actions/result";
 import {
   AnnouncementAudience,
   AnnouncementPriority,

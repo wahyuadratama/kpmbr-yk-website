@@ -20,18 +20,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu } from "lucide-react";
 import { cn } from "cn";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Brand } from "@/components/layout/brand";
-import { ROLE_LABEL, type Role } from "@/lib/auth/permissions";
-import { DASHBOARD_ICONS } from "@/lib/dashboard/icons";
-import type { DashboardNavGroup } from "@/lib/dashboard/nav";
+} from "@/ui/components/ui/sheet";
+import { Brand } from "@/ui/components/layout/brand";
+import { ROLE_LABEL, type Role } from "@/server/auth/permissions";
+import { DASHBOARD_ICONS } from "@/ui/dashboard/icons";
+import type { DashboardNavGroup } from "@/ui/dashboard/nav";
 import { logoutAction } from "@/app/(auth)/login/actions";
 import {
   DropdownMenu,
@@ -40,7 +40,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/ui/components/ui/dropdown-menu";
 
 export type DashboardShellProps = {
   /** Subjudul di bawah nama organisasi, mis. "CMS Administrator". */

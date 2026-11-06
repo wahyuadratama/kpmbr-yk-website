@@ -7,9 +7,9 @@
  */
 import { unstable_cache } from "next/cache";
 import { EventStatus, FileAccessLevel } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
-import { publicFileSrc } from "@/lib/files/public-url";
-import type { AgendaEvent } from "@/types/public";
+import { db } from "@/server/db/prisma";
+import { publicFileSrc } from "@/server/files/public-url";
+import type { AgendaEvent } from "@/shared/types/public";
 
 /** Status yang boleh tampil di halaman publik. */
 const PUBLIC_STATUS = [

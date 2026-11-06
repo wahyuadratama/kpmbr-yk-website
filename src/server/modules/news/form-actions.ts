@@ -17,8 +17,8 @@ import {
   createNewsAction,
   deleteNewsAction,
   updateNewsAction,
-} from "@/modules/news/actions";
-import type { ActionResult } from "@/lib/actions/result";
+} from "@/server/modules/news/actions";
+import type { ActionResult } from "@/server/actions/result";
 import { NewsStatus } from "@/generated/prisma/enums";
 
 /** Buat berita baru dari form. */

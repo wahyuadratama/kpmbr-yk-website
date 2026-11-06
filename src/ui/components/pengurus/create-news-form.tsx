@@ -1,16 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { type ActionResult } from "@/lib/actions/result";
+import { type ActionResult } from "@/server/actions/result";
 import { NewsStatus } from "@/generated/prisma/enums";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Textarea } from "@/ui/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/components/ui/select";
 
 type CreateNewsFormProps = {
-  createAction: typeof import("@/modules/news/form-actions").createNewsFormAction;
+  createAction: typeof import("@/server/modules/news/form-actions").createNewsFormAction;
 };
 
 export default function CreateNewsForm({ createAction }: CreateNewsFormProps) {

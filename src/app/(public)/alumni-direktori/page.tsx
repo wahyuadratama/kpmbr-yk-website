@@ -13,12 +13,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
 import { Users } from "lucide-react";
-import { db } from "@/lib/db/prisma";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { EmptyState, NoResultsState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { db } from "@/server/db/prisma";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { Button } from "@/ui/components/ui/button";
+import { EmptyState, NoResultsState } from "@/ui/components/ui/empty-state";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
 
 /**
  * Angka opsional.

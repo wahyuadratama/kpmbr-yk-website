@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { ProgramKerjaAdminView } from "@/modules/programs/admin-view";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { ProgramKerjaAdminView } from "@/server/modules/programs/admin-view";
 
 export const metadata: Metadata = { title: "Program Kerja" };
 export const dynamic = "force-dynamic";

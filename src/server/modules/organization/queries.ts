@@ -7,15 +7,15 @@
  */
 import { unstable_cache } from "next/cache";
 import { PositionLevel } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
-import { parseList, parseParagraphs, parseTitledList } from "@/lib/content/markdown";
-import { slugify } from "@/lib/utils/format";
+import { db } from "@/server/db/prisma";
+import { parseList, parseParagraphs, parseTitledList } from "@/shared/content/markdown";
+import { slugify } from "@/shared/utils/format";
 import type {
   MembershipBenefit,
   MembershipStep,
   OrgPosition,
   OrgValue,
-} from "@/types/public";
+} from "@/shared/types/public";
 
 /** Kunci konten statis. Dipakai bersama oleh seed dan query. */
 export const CONTENT_KEYS = {

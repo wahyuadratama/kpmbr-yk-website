@@ -3,20 +3,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarRange, Target, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { JsonLd } from "@/components/public/json-ld";
+import { Button } from "@/ui/components/ui/button";
+import { Badge } from "@/ui/components/ui/badge";
+import { Progress } from "@/ui/components/ui/progress";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { JsonLd } from "@/ui/components/public/json-ld";
 import {
   getProgramBySlug,
   getPrograms,
   getProgramSlugs,
   getProgramUpdates,
-} from "@/modules/programs/queries";
-import { PROGRAM_STATUS_CLASS, PROGRAM_STATUS_LABEL } from "@/types/public";
-import { formatTanggal, truncate } from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/programs/queries";
+import { PROGRAM_STATUS_CLASS, PROGRAM_STATUS_LABEL } from "@/shared/types/public";
+import { formatTanggal, truncate } from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 

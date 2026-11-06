@@ -9,11 +9,11 @@
 import * as React from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import type { ActionResult } from "@/lib/actions/result";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Textarea } from "@/ui/components/ui/textarea";
+import type { ActionResult } from "@/server/actions/result";
 
 function SubmitButton() {
   const { pending } = useFormStatus();

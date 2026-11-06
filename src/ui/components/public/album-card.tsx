@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Images } from "lucide-react";
-import { formatTanggal } from "@/lib/utils/format";
-import type { DocAlbum } from "@/types/public";
+import { formatTanggal } from "@/shared/utils/format";
+import type { DocAlbum } from "@/shared/types/public";
 
 type AlbumCardProps = {
   album: DocAlbum;

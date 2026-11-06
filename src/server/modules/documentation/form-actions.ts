@@ -8,8 +8,8 @@
 import {
   createDocumentationAlbumAction,
   deleteDocumentationAlbumAction,
-} from "@/modules/documentation/actions";
-import type { ActionResult } from "@/lib/actions/result";
+} from "@/server/modules/documentation/actions";
+import type { ActionResult } from "@/server/actions/result";
 
 /** Buat album dokumentasi baru dari form. */
 export async function createDocumentationAlbumFormAction(

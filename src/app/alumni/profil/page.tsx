@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import ProfileForm from "@/components/member/profile-form";
+import { requirePortalPage } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import ProfileForm from "@/ui/components/member/profile-form";
 
 export const metadata: Metadata = { title: "Profil Alumni" };
 export const dynamic = "force-dynamic";

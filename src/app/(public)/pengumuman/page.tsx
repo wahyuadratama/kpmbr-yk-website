@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Megaphone } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { DashboardPagination } from "@/components/dashboard/pagination";
-import { Button } from "@/components/ui/button";
-import { listPublicAnnouncements } from "@/modules/announcements/queries";
-import { formatTanggal } from "@/lib/utils/format";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { EmptyState } from "@/ui/components/ui/empty-state";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { DashboardPagination } from "@/ui/components/dashboard/pagination";
+import { Button } from "@/ui/components/ui/button";
+import { listPublicAnnouncements } from "@/server/modules/announcements/queries";
+import { formatTanggal } from "@/shared/utils/format";
 import { AnnouncementAudience } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = {

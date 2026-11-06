@@ -7,10 +7,10 @@
  */
 import { unstable_cache } from "next/cache";
 import { FileAccessLevel, ProgramStatus } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
-import { publicFileSrc } from "@/lib/files/public-url";
-import { formatTanggalPendek } from "@/lib/utils/format";
-import type { ProgramProgress, WorkProgram } from "@/types/public";
+import { db } from "@/server/db/prisma";
+import { publicFileSrc } from "@/server/files/public-url";
+import { formatTanggalPendek } from "@/shared/utils/format";
+import type { ProgramProgress, WorkProgram } from "@/shared/types/public";
 
 const PUBLIC_STATUS = [
   ProgramStatus.DIRANCANG,

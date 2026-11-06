@@ -17,19 +17,19 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 // `forbidden()` milik Next.js menghasilkan status HTTP 403 sungguhan lewat
-// `forbidden.tsx`; versi lokal di `@/lib/errors` hanya untuk route handler.
+// `forbidden.tsx`; versi lokal di `@/shared/errors` hanya untuk route handler.
 import { forbidden as nextForbidden } from "next/navigation";
-import { auth } from "@/auth";
+import { auth } from "@/server/auth/config";
 import {
   canAccess,
   hasPermission,
   isOwnResourceOnly,
   type Permission,
   type Role,
-} from "@/lib/auth/permissions";
-import { canEnterPortal, DASHBOARD_BY_ROLE } from "@/lib/auth/portals";
-import { readPrincipal, type Principal } from "@/lib/auth/principal";
-import { forbidden, notFound, unauthorized } from "@/lib/errors";
+} from "@/server/auth/permissions";
+import { canEnterPortal, DASHBOARD_BY_ROLE } from "@/server/auth/portals";
+import { readPrincipal, type Principal } from "@/server/auth/principal";
+import { forbidden, notFound, unauthorized } from "@/shared/errors";
 
 export type { Principal };
 
@@ -162,7 +162,7 @@ async function recordDenied(
   permission: string,
   detail: string,
 ): Promise<void> {
-  const { writeAudit } = await import("@/lib/audit");
+  const { writeAudit } = await import("@/server/audit");
   const { AuditAction } = await import("@/generated/prisma/enums");
   await writeAudit(
     {

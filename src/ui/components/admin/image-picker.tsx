@@ -17,9 +17,9 @@
 import * as React from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
 
 export type PickedImage = {
   id: string;

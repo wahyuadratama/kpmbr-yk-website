@@ -10,12 +10,12 @@
  */
 "use server";
 
-import { runAction } from "@/lib/actions/result";
-import { requirePermission } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { writeAudit } from "@/lib/audit";
+import { runAction } from "@/server/actions/result";
+import { requirePermission } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { writeAudit } from "@/server/audit";
 import { AuditAction, MembershipEndReason, Role } from "@/generated/prisma/enums";
-import { notFound } from "@/lib/errors";
+import { notFound } from "@/shared/errors";
 import { z } from "zod";
 
 const schema = z.object({

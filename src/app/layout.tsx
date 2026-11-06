@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { siteConfig } from "@/lib/site-config";
+import { Toaster } from "@/ui/components/ui/sonner";
+import { TooltipProvider } from "@/ui/components/ui/tooltip";
+import { siteConfig } from "@/shared/site-config";
 import "./globals.css";
 
 const sans = Geist({

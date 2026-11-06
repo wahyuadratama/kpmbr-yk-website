@@ -2,10 +2,10 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/ui/components/ui/badge";
 import { Clock, UserRound } from "lucide-react";
-import type { NewsArticle } from "@/types/public";
-import { formatTanggal } from "@/lib/utils/format";
+import type { NewsArticle } from "@/shared/types/public";
+import { formatTanggal } from "@/shared/utils/format";
 
 type NewsCardProps = {
   article: NewsArticle;

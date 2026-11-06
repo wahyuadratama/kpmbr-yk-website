@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { DokumentasiAdminView } from "@/modules/documentation/admin-view";
+import { requirePortalPage } from "@/server/auth/guards";
+import { DokumentasiAdminView } from "@/server/modules/documentation/admin-view";
 
 export const metadata: Metadata = { title: "Kelola Dokumentasi" };
 export const dynamic = "force-dynamic";

@@ -8,10 +8,10 @@
  * See docs/authorization.md § Akses File.
  */
 import "server-only";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { FileAccessLevel } from "@/generated/prisma/enums";
-import type { Role } from "@/lib/auth/permissions";
-import { forbidden, notFound } from "@/lib/errors";
+import type { Role } from "@/server/auth/permissions";
+import { forbidden, notFound } from "@/shared/errors";
 
 const ALLOWED_ROLES: Record<FileAccessLevel, Role[]> = {
   PUBLIC: ["ADMIN", "PENGURUS", "ANGGOTA", "ALUMNI"],

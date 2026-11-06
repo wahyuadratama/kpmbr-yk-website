@@ -2,12 +2,12 @@ import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Users } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { EmptyState } from "@/components/ui/empty-state";
-import { getCurrentPositions, getCurrentTerm, getDivisions, getOrganizationTerms } from "@/modules/organization/queries";
-import { formatTanggal } from "@/lib/utils/format";
-import { initials } from "@/lib/utils/format";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { EmptyState } from "@/ui/components/ui/empty-state";
+import { getCurrentPositions, getCurrentTerm, getDivisions, getOrganizationTerms } from "@/server/modules/organization/queries";
+import { formatTanggal } from "@/shared/utils/format";
+import { initials } from "@/shared/utils/format";
 
 export const metadata: Metadata = {
   title: "Kepengurusan",

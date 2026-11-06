@@ -1,8 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
-import { db } from "@/lib/db/prisma";
-import { formatTanggalLengkap, formatJam } from "@/lib/utils/format";
+import { db } from "@/server/db/prisma";
+import { formatTanggalLengkap, formatJam } from "@/shared/utils/format";
 import { EventStatus } from "@/generated/prisma/enums";
 
 /**

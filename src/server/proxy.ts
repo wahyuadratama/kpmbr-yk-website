@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isMaintenanceActive } from "@/lib/settings/website";
+import { isMaintenanceActive } from "@/server/settings/website";
 
 /**
  * Gerbang kasar untuk area privat + status pemeliharaan website.

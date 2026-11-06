@@ -1,26 +1,26 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Images, Target, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SectionHeading } from "@/components/layout/section-heading";
-import { AlbumCard } from "@/components/public/album-card";
-import { EventRow } from "@/components/public/event-row";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { NewsCard } from "@/components/public/news-card";
-import { ProgramCard } from "@/components/public/program-card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/ui/components/ui/button";
+import { SectionHeading } from "@/ui/components/layout/section-heading";
+import { AlbumCard } from "@/ui/components/public/album-card";
+import { EventRow } from "@/ui/components/public/event-row";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { NewsCard } from "@/ui/components/public/news-card";
+import { ProgramCard } from "@/ui/components/public/program-card";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import {
   getMisi,
   getNilai,
   getOrganizationStats,
   getVisi,
-} from "@/modules/organization/queries";
-import { getUpcomingEvents } from "@/modules/events/queries";
-import { getPrograms } from "@/modules/programs/queries";
-import { getAlbums } from "@/modules/documentation/queries";
-import { getFeaturedNews, getPublishedNews } from "@/modules/news/queries";
-import { formatNumber } from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/organization/queries";
+import { getUpcomingEvents } from "@/server/modules/events/queries";
+import { getPrograms } from "@/server/modules/programs/queries";
+import { getAlbums } from "@/server/modules/documentation/queries";
+import { getFeaturedNews, getPublishedNews } from "@/server/modules/news/queries";
+import { formatNumber } from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 /**
  * Homepage KPMBR-YK.

@@ -1,16 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { type ActionResult } from "@/lib/actions/result";
+import { type ActionResult } from "@/server/actions/result";
 import { AnnouncementPriority } from "@/generated/prisma/enums";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Textarea } from "@/ui/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/components/ui/select";
 
 type CreateAnnouncementFormProps = {
-  createAction: typeof import("@/modules/announcements/form-actions").createAnnouncementFormAction;
+  createAction: typeof import("@/server/modules/announcements/form-actions").createAnnouncementFormAction;
 };
 
 export default function CreateAnnouncementForm({ createAction }: CreateAnnouncementFormProps) {

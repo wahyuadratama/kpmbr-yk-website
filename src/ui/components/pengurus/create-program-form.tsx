@@ -1,17 +1,17 @@
 "use client";
 
 import { useActionState } from "react";
-import { type ActionResult } from "@/lib/actions/result";
+import { type ActionResult } from "@/server/actions/result";
 import { ProgramStatus } from "@/generated/prisma/enums";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ImagePicker } from "@/components/admin/image-picker";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
+import { Textarea } from "@/ui/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/components/ui/select";
+import { ImagePicker } from "@/ui/components/admin/image-picker";
 
 type CreateProgramFormProps = {
-  createAction: typeof import("@/modules/programs/form-actions").createProgramFormAction;
+  createAction: typeof import("@/server/modules/programs/form-actions").createProgramFormAction;
 };
 
 export default function CreateProgramForm({ createAction }: CreateProgramFormProps) {

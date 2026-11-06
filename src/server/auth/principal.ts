@@ -13,9 +13,9 @@
  *   Mengganti role atau menonaktifkan akun langsung berlaku pada request
  *   berikutnya tanpa perlu menunggu cookie kedaluwarsa.
  */
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { UserStatus } from "@/generated/prisma/enums";
-import type { Role } from "@/lib/auth/permissions";
+import type { Role } from "@/server/auth/permissions";
 
 export type Principal = {
   userId: string;

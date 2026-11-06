@@ -12,7 +12,7 @@
  * memori proses dengan TTL pendek supaya tidak membebani database.
  */
 import "server-only";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 
 /** TTL cache status maintenance di memori (detik). */
 const MAINTENANCE_TTL_MS = 5_000;

@@ -5,7 +5,7 @@
  *
  * Lihat penjelasan pemisahan file di `modules/news/form-actions.ts`.
  */
-import { deleteOrganizationDocumentAction } from "@/modules/organization-documents/actions";
+import { deleteOrganizationDocumentAction } from "@/server/modules/organization-documents/actions";
 
 /** Hapus dokumen arsip (soft delete). */
 export async function deleteOrganizationDocumentFormAction(

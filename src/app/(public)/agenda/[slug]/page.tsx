@@ -3,21 +3,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, Clock, MapPin, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { JsonLd } from "@/components/public/json-ld";
-import { getEventBySlug, getEvents, getEventSlugs } from "@/modules/events/queries";
+import { Button } from "@/ui/components/ui/button";
+import { Badge } from "@/ui/components/ui/badge";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { JsonLd } from "@/ui/components/public/json-ld";
+import { getEventBySlug, getEvents, getEventSlugs } from "@/server/modules/events/queries";
 import {
   EVENT_STATUS_CLASS,
   EVENT_STATUS_LABEL,
-} from "@/types/public";
+} from "@/shared/types/public";
 import {
   formatJam,
   formatTanggalLengkap,
   truncate,
-} from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 

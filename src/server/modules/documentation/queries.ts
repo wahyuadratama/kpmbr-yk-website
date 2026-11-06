@@ -7,9 +7,9 @@
  */
 import { unstable_cache } from "next/cache";
 import { FileAccessLevel } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
-import { publicFileSrc } from "@/lib/files/public-url";
-import type { DocAlbum } from "@/types/public";
+import { db } from "@/server/db/prisma";
+import { publicFileSrc } from "@/server/files/public-url";
+import type { DocAlbum } from "@/shared/types/public";
 
 /** Token warna album → kelas Tailwind. Sama seperti berita: DB menyimpan
  * token, kelas diatur di satu tempat. */

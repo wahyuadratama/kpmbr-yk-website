@@ -8,11 +8,11 @@
  *   `revalidateTag` setelah mutasi.
  */
 import { unstable_cache } from "next/cache";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import {
   FinancialTransactionType,
 } from "@/generated/prisma/enums";
-import { formatRupiah } from "@/lib/utils/format";
+import { formatRupiah } from "@/shared/utils/format";
 
 export const FINANCE_TAGS = {
   categories: "finance-categories",

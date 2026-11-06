@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
 import {
   createAnnouncementFormAction,
   deleteAnnouncementFormAction,
-} from "@/modules/announcements/form-actions";
-import { listAnnouncements } from "@/modules/announcements/queries";
-import CreateAnnouncementForm from "@/components/pengurus/create-announcement-form";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { formatTanggalPendek } from "@/lib/utils/format";
+} from "@/server/modules/announcements/form-actions";
+import { listAnnouncements } from "@/server/modules/announcements/queries";
+import CreateAnnouncementForm from "@/ui/components/pengurus/create-announcement-form";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Pengumuman" };
 export const dynamic = "force-dynamic";

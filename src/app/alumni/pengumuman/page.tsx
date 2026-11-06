@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { AnnouncementList } from "@/components/member/announcement-list";
+import { requirePortalPage } from "@/server/auth/guards";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { AnnouncementList } from "@/ui/components/member/announcement-list";
 import { AnnouncementAudience } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Pengumuman" };

@@ -8,8 +8,8 @@
  *   sudah lewat, buat bucket baru.
  * - Digunakan untuk endpoint sensitif: login dan unduh file.
  */
-import { db } from "@/lib/db/prisma";
-import type { RateLimitResult } from "@/lib/rate-limit";
+import { db } from "@/server/db/prisma";
+import type { RateLimitResult } from "@/server/rate-limit";
 
 /** Ambil atau buat bucket rate limit untuk `key` dalam window `windowMs`. */
 export async function consumeDbRateLimit(

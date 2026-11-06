@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/shared/site-config";
 import logo from "@/assets/kpmbr-logo.png";
 
 type BrandProps = {

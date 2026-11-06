@@ -9,14 +9,14 @@
  */
 "use server";
 
-import { runAction } from "@/lib/actions/result";
-import { requirePermission } from "@/lib/auth/guards";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { memberProfileSchema } from "@/lib/validation/member";
-import { db } from "@/lib/db/prisma";
-import { writeAudit } from "@/lib/audit";
+import { runAction } from "@/server/actions/result";
+import { requirePermission } from "@/server/auth/guards";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { memberProfileSchema } from "@/shared/validation/member";
+import { db } from "@/server/db/prisma";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { forbidden } from "@/lib/errors";
+import { forbidden } from "@/shared/errors";
 
 export type UpdateMemberProfileResult = {
   ok?: boolean;

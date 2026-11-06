@@ -1,16 +1,16 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { CheckCircle2, Mail, MapPin, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/layout/page-header";
-import { SectionHeading } from "@/components/layout/section-heading";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
+import { Button } from "@/ui/components/ui/button";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { SectionHeading } from "@/ui/components/layout/section-heading";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
 import {
   getMembershipBenefits,
   getMembershipRequirements,
   getMembershipSteps,
-} from "@/modules/organization/queries";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/organization/queries";
+import { siteConfig } from "@/shared/site-config";
 
 export const metadata: Metadata = {
   title: "Keanggotaan",

@@ -12,23 +12,23 @@
 import "server-only";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
-import { requirePermission } from "@/lib/auth/guards";
-import { parseOrThrow } from "@/lib/validation/parse";
+import { db } from "@/server/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { parseOrThrow } from "@/shared/validation/parse";
 import {
   financialCategoryCreateSchema,
   financialCategoryUpdateSchema,
   financialTransactionCreateSchema,
   financialTransactionUpdateSchema,
   financialReportCreateSchema,
-} from "@/lib/validation/finance";
-import { cuidSchema } from "@/lib/validation/common";
-import { notFound } from "@/lib/errors";
-import { runAction, type ActionResult } from "@/lib/actions/result";
-import { writeAudit } from "@/lib/audit";
+} from "@/shared/validation/finance";
+import { cuidSchema } from "@/shared/validation/common";
+import { notFound } from "@/shared/errors";
+import { runAction, type ActionResult } from "@/server/actions/result";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { parseLocalDate } from "@/lib/utils/datetime";
-import { FINANCE_TAGS } from "@/modules/finance/queries";
+import { parseLocalDate } from "@/shared/utils/datetime";
+import { FINANCE_TAGS } from "@/server/modules/finance/queries";
 
 const idSchema = z.object({ id: cuidSchema });
 

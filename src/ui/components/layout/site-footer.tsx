@@ -1,9 +1,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { Mail, MapPin } from "lucide-react";
-import { InstagramIcon } from "@/components/ui/icons";
-import { Brand } from "@/components/layout/brand";
-import { footerNav, siteConfig } from "@/lib/site-config";
+import { InstagramIcon } from "@/ui/components/ui/icons";
+import { Brand } from "@/ui/components/layout/brand";
+import { footerNav, siteConfig } from "@/shared/site-config";
 
 /** Footer website publik: identitas, peta situs, dan kontak. */
 export function SiteFooter() {

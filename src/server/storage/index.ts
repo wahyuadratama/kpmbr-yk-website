@@ -18,9 +18,9 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { FileAccessLevel, FileKind } from "@/generated/prisma/enums";
-import { tooLarge, unsupportedMedia } from "@/lib/errors";
+import { tooLarge, unsupportedMedia } from "@/shared/errors";
 
 /** Batas ukuran per jenis file (byte). */
 export const MAX_SIZE: Record<FileKind, number> = {

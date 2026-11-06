@@ -6,7 +6,7 @@
  * pesan per-field yang aman ditampilkan, tanpa membocorkan stack trace.
  */
 import { z } from "zod";
-import { validationError } from "@/lib/errors";
+import { validationError } from "@/shared/errors";
 
 export type FieldError = { field: string; message: string };
 

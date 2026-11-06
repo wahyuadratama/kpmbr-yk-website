@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu } from "lucide-react";
 import { cn } from "cn";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/ui/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetClose,
@@ -19,15 +19,15 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/ui/components/ui/sheet";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Brand } from "@/components/layout/brand";
-import { siteConfig } from "@/lib/site-config";
+} from "@/ui/components/ui/accordion";
+import { Brand } from "@/ui/components/layout/brand";
+import { siteConfig } from "@/shared/site-config";
 import {
   activeChildHref,
   isHrefActive,
@@ -35,7 +35,7 @@ import {
   publicNav,
   type NavChild,
   type NavEntry,
-} from "@/lib/navigation";
+} from "@/ui/navigation";
 
 /**
  * Header website publik.

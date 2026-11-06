@@ -3,17 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "cn";
 import { Calendar, MapPin, Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/ui/components/ui/badge";
 import {
   EVENT_STATUS_CLASS,
   EVENT_STATUS_LABEL,
   type AgendaEvent,
-} from "@/types/public";
+} from "@/shared/types/public";
 import {
   formatBulanSingkat,
   formatHari,
   formatJam,
-} from "@/lib/utils/format";
+} from "@/shared/utils/format";
 
 type EventRowProps = {
   event: AgendaEvent;

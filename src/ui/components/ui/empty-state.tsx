@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "cn";
 import { AlertTriangle, Inbox, SearchX } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/components/ui/button";
 
 type EmptyStateProps = {
   icon?: React.ComponentType<{ className?: string }>;

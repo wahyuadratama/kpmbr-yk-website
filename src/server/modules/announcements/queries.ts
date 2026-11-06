@@ -1,12 +1,12 @@
 /** Query pengumuman untuk dashboard pengurus/admin. */
 import { unstable_cache } from "next/cache";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import {
   AnnouncementAudience,
   AnnouncementPriority,
 } from "@/generated/prisma/enums";
-import { parseParagraphs } from "@/lib/content/markdown";
-import { publicFileSrc } from "@/lib/files/public-url";
+import { parseParagraphs } from "@/shared/content/markdown";
+import { publicFileSrc } from "@/server/files/public-url";
 
 export async function listAnnouncements({
   page = 1,

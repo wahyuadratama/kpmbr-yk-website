@@ -9,8 +9,8 @@ import {
   createProgramAction,
   deleteProgramAction,
   updateProgramAction,
-} from "@/modules/programs/actions";
-import type { ActionResult } from "@/lib/actions/result";
+} from "@/server/modules/programs/actions";
+import type { ActionResult } from "@/server/actions/result";
 import { ProgramStatus } from "@/generated/prisma/enums";
 
 /** Buat program kerja baru dari form. */

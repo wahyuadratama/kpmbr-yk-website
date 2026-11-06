@@ -1,6 +1,6 @@
 import * as React from "react";
-import { db } from "@/lib/db/prisma";
-import { formatTanggalLengkap } from "@/lib/utils/format";
+import { db } from "@/server/db/prisma";
+import { formatTanggalLengkap } from "@/shared/utils/format";
 import { AnnouncementAudience } from "@/generated/prisma/enums";
 
 /**

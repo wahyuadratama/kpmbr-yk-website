@@ -6,21 +6,21 @@
  * persetujuan hanya muncul bila role MEMILIKI permission-nya, sehingga
  * bendahara tidak mungkin menyetujui laporannya sendiri.
  */
-import { hasPermission } from "@/lib/auth/permissions";
-import type { Principal } from "@/lib/auth/principal";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatusBadge, type StatusTone } from "@/components/dashboard/status-badge";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { ReportForm } from "@/components/bendahara/report-form";
+import { hasPermission } from "@/server/auth/permissions";
+import type { Principal } from "@/server/auth/principal";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatusBadge, type StatusTone } from "@/ui/components/dashboard/status-badge";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { ReportForm } from "@/ui/components/bendahara/report-form";
 import {
   approveFinancialReportFormAction,
   createFinancialReportFormAction,
   publishFinancialReportFormAction,
   rejectFinancialReportFormAction,
   submitFinancialReportFormAction,
-} from "@/modules/finance/form-actions";
+} from "@/server/modules/finance/form-actions";
 import {
   Table,
   TableBody,
@@ -28,8 +28,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { formatRupiah } from "@/lib/utils/format";
+} from "@/ui/components/ui/table";
+import { formatRupiah } from "@/shared/utils/format";
 import { FinancialReportStatus } from "@/generated/prisma/enums";
 
 const STATUS_TONE: Record<string, StatusTone> = {

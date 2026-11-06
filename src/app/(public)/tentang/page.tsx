@@ -1,8 +1,8 @@
 import * as React from "react";
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { SectionHeading } from "@/components/layout/section-heading";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { SectionHeading } from "@/ui/components/layout/section-heading";
 import {
   getCurrentPositions,
   getDivisions,
@@ -10,8 +10,8 @@ import {
   getNilai,
   getSejarahParagraphs,
   getVisi,
-} from "@/modules/organization/queries";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/organization/queries";
+import { siteConfig } from "@/shared/site-config";
 
 export const metadata: Metadata = {
   title: "Tentang KPMBR-YK",

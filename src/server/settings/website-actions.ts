@@ -7,13 +7,13 @@
  * langsung berlaku — tidak ada deployment ulang.
  */
 import { z } from "zod";
-import { db } from "@/lib/db/prisma";
-import { requirePermission } from "@/lib/auth/guards";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { runAction, type ActionResult } from "@/lib/actions/result";
-import { writeAudit } from "@/lib/audit";
+import { db } from "@/server/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { runAction, type ActionResult } from "@/server/actions/result";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { resetMaintenanceCache } from "@/lib/settings/website";
+import { resetMaintenanceCache } from "@/server/settings/website";
 
 /** ID baris tunggal tabel `website_settings`. */
 const SETTINGS_ID = "default";

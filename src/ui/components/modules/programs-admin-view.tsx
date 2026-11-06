@@ -7,19 +7,19 @@
  * permission-nya identik. Duplikasi akan membuat dua tempat harus diubah
  * setiap kali ada perubahan.
  */
-import { db } from "@/lib/db/prisma";
-import { hasPermission } from "@/lib/auth/permissions";
-import type { Principal } from "@/lib/auth/principal";
+import { db } from "@/server/db/prisma";
+import { hasPermission } from "@/server/auth/permissions";
+import type { Principal } from "@/server/auth/principal";
 import { ProgramStatus } from "@/generated/prisma/enums";
 import {
   advanceProgramProgressFormAction,
   createProgramFormAction,
   deleteProgramFormAction,
-} from "@/modules/programs/form-actions";
-import CreateProgramForm from "@/components/pengurus/create-program-form";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
+} from "@/server/modules/programs/form-actions";
+import CreateProgramForm from "@/ui/components/pengurus/create-program-form";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/ui/components/ui/table";
 
 const STATUS_LABEL: Record<ProgramStatus, string> = {
   DRAFT: "Draft",

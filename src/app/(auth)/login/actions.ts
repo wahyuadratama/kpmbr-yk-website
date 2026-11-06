@@ -9,16 +9,16 @@
  * `loginAction`.
  */
 import { redirect } from "next/navigation";
-import { signIn, signOut } from "@/auth";
-import { db } from "@/lib/db/prisma";
-import { runAction, type ActionResult } from "@/lib/actions/result";
-import { parseOrThrow } from "@/lib/validation/parse";
-import { loginSchema } from "@/lib/validation/cms";
-import { isLocked, secondsUntilUnlock } from "@/lib/auth/lockout";
-import { safeNextPath } from "@/lib/auth/portals";
-import type { Role } from "@/lib/auth/permissions";
+import { signIn, signOut } from "@/server/auth/config";
+import { db } from "@/server/db/prisma";
+import { runAction, type ActionResult } from "@/server/actions/result";
+import { parseOrThrow } from "@/shared/validation/parse";
+import { loginSchema } from "@/shared/validation/cms";
+import { isLocked, secondsUntilUnlock } from "@/server/auth/lockout";
+import { safeNextPath } from "@/server/auth/portals";
+import type { Role } from "@/server/auth/permissions";
 import { UserStatus } from "@/generated/prisma/enums";
-import { AppError } from "@/lib/errors";
+import { AppError } from "@/shared/errors";
 
 /** Pesan sengaja sama untuk semua kegagalan agar tidak jadi oracle akun. */
 const GENERIC = "Email atau password salah, atau akun tidak aktif.";

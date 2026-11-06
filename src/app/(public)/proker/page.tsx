@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Target } from "lucide-react";
 import { cn } from "cn";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { ProgramCard } from "@/components/public/program-card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { getPrograms } from "@/modules/programs/queries";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { ProgramCard } from "@/ui/components/public/program-card";
+import { EmptyState } from "@/ui/components/ui/empty-state";
+import { getPrograms } from "@/server/modules/programs/queries";
 import {
   PROGRAM_STATUS_LABEL,
   type ProgramStatus,
-} from "@/types/public";
+} from "@/shared/types/public";
 
 export const metadata: Metadata = {
   title: "Program Kerja",

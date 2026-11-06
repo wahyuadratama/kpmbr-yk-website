@@ -8,8 +8,8 @@
 import {
   createEventAction,
   deleteEventAction,
-} from "@/modules/events/actions";
-import type { ActionResult } from "@/lib/actions/result";
+} from "@/server/modules/events/actions";
+import type { ActionResult } from "@/server/actions/result";
 import { EventStatus } from "@/generated/prisma/enums";
 
 /** Buat agenda baru dari form. */

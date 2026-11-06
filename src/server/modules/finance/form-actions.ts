@@ -21,13 +21,13 @@ import {
   createFinancialTransactionAction,
   deleteFinancialCategoryAction,
   deleteFinancialTransactionAction,
-} from "@/modules/finance/actions";
-import type { ActionResult } from "@/lib/actions/result";
-import { db } from "@/lib/db/prisma";
-import { requirePermission } from "@/lib/auth/guards";
-import { writeAudit } from "@/lib/audit";
+} from "@/server/modules/finance/actions";
+import type { ActionResult } from "@/server/actions/result";
+import { db } from "@/server/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { notFound, conflict, forbidden } from "@/lib/errors";
+import { notFound, conflict, forbidden } from "@/shared/errors";
 import {
   FinancialReportStatus,
   FinancialTransactionType,
