@@ -1,11 +1,11 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { Images } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { AlbumCard } from "@/components/public/album-card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { getAlbums } from "@/modules/documentation/queries";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { AlbumCard } from "@/ui/components/public/album-card";
+import { EmptyState } from "@/ui/components/ui/empty-state";
+import { getAlbums } from "@/server/modules/documentation/queries";
 
 export const metadata: Metadata = {
   title: "Dokumentasi",

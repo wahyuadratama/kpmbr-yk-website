@@ -6,10 +6,10 @@
  * `POST /api/finance/transactions` — buat transaksi baru.
  */
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/auth/guards";
-import { listFinancialTransactions } from "@/modules/finance/queries";
-import { createFinancialTransactionAction } from "@/modules/finance/actions";
-import { publicMessage, logSafe } from "@/lib/errors";
+import { requirePermission } from "@/server/auth/guards";
+import { listFinancialTransactions } from "@/server/modules/finance/queries";
+import { createFinancialTransactionAction } from "@/server/modules/finance/actions";
+import { publicMessage, logSafe } from "@/shared/errors";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";

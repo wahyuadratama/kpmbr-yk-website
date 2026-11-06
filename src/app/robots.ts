@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/shared/site-config";
 
 /**
  * robots.txt.

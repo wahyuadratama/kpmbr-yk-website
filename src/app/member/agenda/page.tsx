@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { EventList } from "@/components/member/event-list";
+import { requirePortalPage } from "@/server/auth/guards";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { EventList } from "@/ui/components/member/event-list";
 
 export const metadata: Metadata = { title: "Agenda" };
 export const dynamic = "force-dynamic";

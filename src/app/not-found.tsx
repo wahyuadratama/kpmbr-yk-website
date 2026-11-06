@@ -1,8 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { flattenNavLinks, publicNav } from "@/lib/navigation";
+import { Button } from "@/ui/components/ui/button";
+import { flattenNavLinks, publicNav } from "@/ui/navigation";
 
 export const metadata: Metadata = {
   title: "Halaman tidak ditemukan",

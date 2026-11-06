@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { getCurrentPrincipal } from "@/lib/auth/guards";
-import { siteConfig } from "@/lib/site-config";
+import { getCurrentPrincipal } from "@/server/auth/guards";
+import { siteConfig } from "@/shared/site-config";
 import { LoginForm } from "./login-form";
 import logo from "@/assets/kpmbr-logo.png";
 

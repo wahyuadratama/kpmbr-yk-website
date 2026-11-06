@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { AgendaAdminView } from "@/modules/events/admin-view";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { AgendaAdminView } from "@/ui/components/modules/events-admin-view";
 
 export const metadata: Metadata = { title: "Agenda" };
 export const dynamic = "force-dynamic";

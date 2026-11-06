@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { formatTanggalPendek } from "@/lib/utils/format";
-import { EmptyState } from "@/components/ui/empty-state";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { formatTanggalPendek } from "@/shared/utils/format";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import { Filter, Inbox } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { listOrganizationDocuments } from "@/modules/organization-documents/queries";
-import { deleteOrganizationDocumentFormAction } from "@/modules/organization-documents/form-actions";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { ArsipUploadForm } from "@/components/admin/arsip-upload-form";
+import { Button } from "@/ui/components/ui/button";
+import { Label } from "@/ui/components/ui/label";
+import { listOrganizationDocuments } from "@/server/modules/organization-documents/queries";
+import { deleteOrganizationDocumentFormAction } from "@/server/modules/organization-documents/form-actions";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { ArsipUploadForm } from "@/ui/components/admin/arsip-upload-form";
 import {
   DocumentCategory,
   FileAccessLevel,

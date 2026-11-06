@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/site-config";
-import { getNewsSlugs, getPublishedNews } from "@/modules/news/queries";
-import { getEventSlugs } from "@/modules/events/queries";
-import { getProgramSlugs } from "@/modules/programs/queries";
-import { getAlbumSlugs } from "@/modules/documentation/queries";
+import { siteConfig } from "@/shared/site-config";
+import { getNewsSlugs, getPublishedNews } from "@/server/modules/news/queries";
+import { getEventSlugs } from "@/server/modules/events/queries";
+import { getProgramSlugs } from "@/server/modules/programs/queries";
+import { getAlbumSlugs } from "@/server/modules/documentation/queries";
 
 /**
  * Sitemap XML otomatis, sumbernya database.

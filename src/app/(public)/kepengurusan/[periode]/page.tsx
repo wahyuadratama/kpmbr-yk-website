@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarRange, Users } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { Button } from "@/ui/components/ui/button";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import {
   getOrganizationTerms,
   getTermBySlug,
-} from "@/modules/organization/queries";
-import { formatTanggal, initials } from "@/lib/utils/format";
+} from "@/server/modules/organization/queries";
+import { formatTanggal, initials } from "@/shared/utils/format";
 
 type PageProps = {
   params: Promise<{ periode: string }>;

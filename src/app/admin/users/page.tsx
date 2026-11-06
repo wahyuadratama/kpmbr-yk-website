@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { Role, UserStatus } from "@/generated/prisma/enums";
 import {
   updateUserRoleAction,
   updateUserStatusAction,
   deleteUserAction,
-} from "@/lib/actions/users";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
+} from "@/server/actions/users";
+import { Button } from "@/ui/components/ui/button";
+import { Label } from "@/ui/components/ui/label";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { formatTanggalPendek } from "@/lib/utils/format";
+} from "@/ui/components/ui/select";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 export const metadata: Metadata = { title: "Pengguna" };
 export const dynamic = "force-dynamic";

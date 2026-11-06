@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Megaphone, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { DashboardPagination } from "@/components/dashboard/pagination";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { DashboardPagination } from "@/ui/components/dashboard/pagination";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
 import {
   Table,
   TableBody,
@@ -15,22 +15,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/ui/components/ui/table";
+import { Button } from "@/ui/components/ui/button";
+import { Input } from "@/ui/components/ui/input";
+import { Label } from "@/ui/components/ui/label";
 import {
   CONTENT_KINDS,
   listAllContent,
   type ContentKind,
   type ContentRow,
-} from "@/modules/content/queries";
-import { deleteAnnouncementFormAction } from "@/modules/announcements/form-actions";
-import { deleteNewsFormAction, setNewsStatusFormAction } from "@/modules/news/form-actions";
-import { deleteProgramFormAction } from "@/modules/programs/form-actions";
-import { deleteEventFormAction } from "@/modules/events/form-actions";
-import { deleteDocumentationAlbumFormAction } from "@/modules/documentation/form-actions";
-import { formatTanggalPendek } from "@/lib/utils/format";
+} from "@/server/modules/content/queries";
+import { deleteAnnouncementFormAction } from "@/server/modules/announcements/form-actions";
+import { deleteNewsFormAction, setNewsStatusFormAction } from "@/server/modules/news/form-actions";
+import { deleteProgramFormAction } from "@/server/modules/programs/form-actions";
+import { deleteEventFormAction } from "@/server/modules/events/form-actions";
+import { deleteDocumentationAlbumFormAction } from "@/server/modules/documentation/form-actions";
+import { formatTanggalPendek } from "@/shared/utils/format";
 import { NewsStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Semua Konten" };

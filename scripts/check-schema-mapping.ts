@@ -17,7 +17,7 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 
 const ROOT = process.cwd();
 const SCHEMA = join(ROOT, "prisma", "schema.prisma");

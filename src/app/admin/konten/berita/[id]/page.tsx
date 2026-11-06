@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { NewsEditorForm } from "@/components/admin/news-editor-form";
-import { updateNewsFormAction } from "@/modules/news/form-actions";
-import { coverPreview } from "@/lib/files/public-url";
-import { formatTanggalPendek } from "@/lib/utils/format";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { NewsEditorForm } from "@/ui/components/admin/news-editor-form";
+import { updateNewsFormAction } from "@/server/modules/news/form-actions";
+import { coverPreview } from "@/server/files/public-url";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 export const metadata: Metadata = { title: "Sunting Berita" };
 export const dynamic = "force-dynamic";

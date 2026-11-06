@@ -1,5 +1,5 @@
-import { db } from "@/lib/db/prisma";
-import { formatTanggalPendek, formatJam } from "@/lib/utils/format";
+import { db } from "@/server/db/prisma";
+import { formatTanggalPendek, formatJam } from "@/shared/utils/format";
 import { emptyStateText } from "./empty-audit";
 
 /**

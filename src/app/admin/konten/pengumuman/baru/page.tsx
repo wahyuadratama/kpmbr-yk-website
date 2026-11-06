@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { AnnouncementEditorForm } from "@/components/admin/announcement-editor-form";
-import { createAnnouncementFormAction } from "@/modules/announcements/form-actions";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { AnnouncementEditorForm } from "@/ui/components/admin/announcement-editor-form";
+import { createAnnouncementFormAction } from "@/server/modules/announcements/form-actions";
 import { AnnouncementAudience, AnnouncementPriority } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Buat Pengumuman" };

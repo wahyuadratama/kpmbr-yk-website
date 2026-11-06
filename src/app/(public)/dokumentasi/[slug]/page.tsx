@@ -3,18 +3,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Images } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { JsonLd } from "@/components/public/json-ld";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/ui/components/ui/button";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { JsonLd } from "@/ui/components/public/json-ld";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import {
   getAlbumBySlug,
   getAlbumDetail,
   getAlbums,
   getAlbumSlugs,
-} from "@/modules/documentation/queries";
-import { formatTanggal, truncate } from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/documentation/queries";
+import { formatTanggal, truncate } from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 

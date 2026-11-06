@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { formatTanggalPendek } from "@/lib/utils/format";
-import { EmptyState } from "@/components/ui/empty-state";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { formatTanggalPendek } from "@/shared/utils/format";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import { ArrowRight, Inbox } from "lucide-react";
-import { getFinancialSummary } from "@/modules/finance/queries";
-import { listFinancialTransactions } from "@/modules/finance/queries";
-import { listFinancialCategories } from "@/modules/finance/queries";
+import { getFinancialSummary } from "@/server/modules/finance/queries";
+import { listFinancialTransactions } from "@/server/modules/finance/queries";
+import { listFinancialCategories } from "@/server/modules/finance/queries";
 import {
   FinanceCategoryForm,
   FinanceTransactionForm,
-} from "@/components/admin/finance-form";
+} from "@/ui/components/admin/finance-form";
 
 type Category = {
   id: string;

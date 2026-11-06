@@ -3,9 +3,9 @@ import {
   generateDigitalCardAction,
   revokeDigitalCardAction,
   getDigitalCardAction,
-} from "@/lib/actions/digital-member-card";
-import { requirePortalPage } from "@/lib/auth/guards";
-import KartuForm from "@/components/member/kartu-form";
+} from "@/server/actions/digital-member-card";
+import { requirePortalPage } from "@/server/auth/guards";
+import KartuForm from "@/ui/components/member/kartu-form";
 
 export const metadata: Metadata = {
   title: "Kartu Anggota Digital",

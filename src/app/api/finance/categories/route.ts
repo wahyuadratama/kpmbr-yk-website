@@ -5,10 +5,10 @@
  * `POST /api/finance/categories` — buat kategori baru.
  */
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/auth/guards";
-import { listFinancialCategories } from "@/modules/finance/queries";
-import { createFinancialCategoryAction } from "@/modules/finance/actions";
-import { publicMessage, logSafe } from "@/lib/errors";
+import { requirePermission } from "@/server/auth/guards";
+import { listFinancialCategories } from "@/server/modules/finance/queries";
+import { createFinancialCategoryAction } from "@/server/modules/finance/actions";
+import { publicMessage, logSafe } from "@/shared/errors";
 
 export const dynamic = "force-dynamic";
 

@@ -9,13 +9,13 @@
  * Token mentah TIDAK pernah dicocokkan secara teks di database.
  */
 import { NextResponse } from "next/server";
-import { getCurrentPrincipal } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { writeAudit } from "@/lib/audit";
+import { getCurrentPrincipal } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { hashToken } from "@/lib/crypto";
-import { clientIpFrom } from "@/lib/audit";
-import { publicMessage, logSafe } from "@/lib/errors";
+import { hashToken } from "@/server/crypto";
+import { clientIpFrom } from "@/server/audit";
+import { publicMessage, logSafe } from "@/shared/errors";
 
 export const dynamic = "force-dynamic";
 

@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { permanentRedirect } from "next/navigation";
 import { Newspaper } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { NewsCard } from "@/components/public/news-card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { NewsCard } from "@/ui/components/public/news-card";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import {
   getNewsCategories,
   getPublishedNews,
-} from "@/modules/news/queries";
+} from "@/server/modules/news/queries";
 
 type PageProps = {
   searchParams: Promise<{ kategori?: string }>;

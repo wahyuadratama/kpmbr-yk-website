@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatCard } from "@/components/dashboard/stat-card";
+import { requirePortalPage } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatCard } from "@/ui/components/dashboard/stat-card";
 import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
-import { formatRupiah } from "@/lib/utils/format";
+import { formatRupiah } from "@/shared/utils/format";
 import { FinancialReportStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Transparansi Keuangan" };

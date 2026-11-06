@@ -5,10 +5,10 @@
  * `POST /api/finance/reports` — buat laporan baru.
  */
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/auth/guards";
-import { listFinancialReports } from "@/modules/finance/queries";
-import { createFinancialReportAction } from "@/modules/finance/actions";
-import { publicMessage, logSafe } from "@/lib/errors";
+import { requirePermission } from "@/server/auth/guards";
+import { listFinancialReports } from "@/server/modules/finance/queries";
+import { createFinancialReportAction } from "@/server/modules/finance/actions";
+import { publicMessage, logSafe } from "@/shared/errors";
 
 export const dynamic = "force-dynamic";
 

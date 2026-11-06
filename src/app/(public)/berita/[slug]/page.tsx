@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, Tag, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { JsonLd } from "@/components/public/json-ld";
+import { Button } from "@/ui/components/ui/button";
+import { Badge } from "@/ui/components/ui/badge";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { JsonLd } from "@/ui/components/public/json-ld";
 import {
   getNewsBySlug,
   getNewsSlugs,
   getRelatedNews,
-} from "@/modules/news/queries";
-import { formatTanggal, truncate } from "@/lib/utils/format";
-import { siteConfig } from "@/lib/site-config";
+} from "@/server/modules/news/queries";
+import { formatTanggal, truncate } from "@/shared/utils/format";
+import { siteConfig } from "@/shared/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 

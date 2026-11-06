@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { TransaksiAdminView } from "@/modules/finance/transaksi-view";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { TransaksiAdminView } from "@/ui/components/modules/finance-transaksi-view";
 
 export const metadata: Metadata = { title: "Transaksi" };
 export const dynamic = "force-dynamic";

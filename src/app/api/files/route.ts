@@ -1,13 +1,13 @@
 /** Unggah file melalui `POST /api/files`. */
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
+import { requirePermission } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
 import { FileAccessLevel, FileKind } from "@/generated/prisma/enums";
-import { storeFile, kindForMime } from "@/lib/storage";
-import { writeAudit } from "@/lib/audit";
+import { storeFile, kindForMime } from "@/server/storage";
+import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
-import { clientIpFrom } from "@/lib/audit";
-import { publicMessage, logSafe, badRequest, unsupportedMedia } from "@/lib/errors";
+import { clientIpFrom } from "@/server/audit";
+import { publicMessage, logSafe, badRequest, unsupportedMedia } from "@/shared/errors";
 
 export const dynamic = "force-dynamic";
 

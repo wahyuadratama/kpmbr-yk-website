@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { CategoryForm } from "@/components/bendahara/category-form";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { StatusBadge } from "@/ui/components/dashboard/status-badge";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { CategoryForm } from "@/ui/components/bendahara/category-form";
 import {
   Table,
   TableBody,
@@ -14,11 +14,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/ui/components/ui/table";
 import {
   createFinancialCategoryFormAction,
   deleteFinancialCategoryFormAction,
-} from "@/modules/finance/form-actions";
+} from "@/server/modules/finance/form-actions";
 import { FinancialTransactionType } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Kategori Keuangan" };

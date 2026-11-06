@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { formatTanggalPendek, formatJam } from "@/lib/utils/format";
-import { EmptyState } from "@/components/ui/empty-state";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { formatTanggalPendek, formatJam } from "@/shared/utils/format";
+import { EmptyState } from "@/ui/components/ui/empty-state";
 import { Filter, Inbox } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/ui/components/ui/button";
+import { Label } from "@/ui/components/ui/label";
 import { AuditAction } from "@/generated/prisma/enums";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 
 export const metadata: Metadata = { title: "Log Audit" };
 export const dynamic = "force-dynamic";

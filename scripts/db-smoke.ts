@@ -5,7 +5,7 @@
  * Menguji: koneksi driver adapter, query nyata ke setiap tabel fondasi,
  * dan verifikasi soft-delete + enum bekerja.
  */
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { Role, UserStatus, MembershipStatus, FileAccessLevel } from "@/generated/prisma/enums";
 
 const results: { step: string; ok: boolean; detail: string }[] = [];

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { db } from "@/lib/db/prisma";
+import { db } from "@/server/db/prisma";
 import { Gender, MembershipStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Anggota" };

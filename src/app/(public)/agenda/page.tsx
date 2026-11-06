@@ -1,11 +1,11 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { CalendarDays } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { MockDataNotice } from "@/components/public/mock-data-notice";
-import { EventRow } from "@/components/public/event-row";
-import { EmptyState } from "@/components/ui/empty-state";
-import { getAgendaSections } from "@/modules/events/queries";
+import { PageHeader } from "@/ui/components/layout/page-header";
+import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
+import { EventRow } from "@/ui/components/public/event-row";
+import { EmptyState } from "@/ui/components/ui/empty-state";
+import { getAgendaSections } from "@/server/modules/events/queries";
 
 export const metadata: Metadata = {
   title: "Agenda",

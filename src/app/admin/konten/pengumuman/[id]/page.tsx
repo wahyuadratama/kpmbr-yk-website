@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requirePermissionPage } from "@/lib/auth/guards";
-import { db } from "@/lib/db/prisma";
-import { PageHeading } from "@/components/dashboard/page-heading";
-import { Panel } from "@/components/dashboard/panel";
-import { AnnouncementEditorForm } from "@/components/admin/announcement-editor-form";
-import { updateAnnouncementFormAction } from "@/modules/announcements/form-actions";
-import { coverPreview } from "@/lib/files/public-url";
-import { formatTanggalPendek } from "@/lib/utils/format";
+import { requirePermissionPage } from "@/server/auth/guards";
+import { db } from "@/server/db/prisma";
+import { PageHeading } from "@/ui/components/dashboard/page-heading";
+import { Panel } from "@/ui/components/dashboard/panel";
+import { AnnouncementEditorForm } from "@/ui/components/admin/announcement-editor-form";
+import { updateAnnouncementFormAction } from "@/server/modules/announcements/form-actions";
+import { coverPreview } from "@/server/files/public-url";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 export const metadata: Metadata = { title: "Sunting Pengumuman" };
 export const dynamic = "force-dynamic";

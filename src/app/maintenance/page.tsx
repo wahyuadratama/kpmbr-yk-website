@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Clock, Wrench } from "lucide-react";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/shared/site-config";
 import {
   DEFAULT_MAINTENANCE_MESSAGE,
   getMaintenanceState,
-} from "@/lib/settings/website";
+} from "@/server/settings/website";
 import logo from "@/assets/kpmbr-logo.png";
 
 export const metadata: Metadata = {

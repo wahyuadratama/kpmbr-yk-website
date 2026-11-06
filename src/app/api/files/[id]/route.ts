@@ -8,13 +8,13 @@
  * ditebak tidak cukup karena `access_level` tetap diperiksa.
  */
 import { NextResponse } from "next/server";
-import { getCurrentPrincipal } from "@/lib/auth/guards";
-import { authorizeFileAccess, contentDisposition } from "@/lib/files/access";
-import { readFile } from "@/lib/storage";
-import { clientIpFrom, writeAudit } from "@/lib/audit";
-import { consumeDbRateLimit } from "@/lib/rate-limit-db";
+import { getCurrentPrincipal } from "@/server/auth/guards";
+import { authorizeFileAccess, contentDisposition } from "@/server/files/access";
+import { readFile } from "@/server/storage";
+import { clientIpFrom, writeAudit } from "@/server/audit";
+import { consumeDbRateLimit } from "@/server/rate-limit-db";
 import { AuditAction } from "@/generated/prisma/enums";
-import { logSafe, publicMessage } from "@/lib/errors";
+import { logSafe, publicMessage } from "@/shared/errors";
 
 /** Route selalu dinamis: bergantung pada session. */
 export const dynamic = "force-dynamic";

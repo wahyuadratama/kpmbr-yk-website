@@ -10,11 +10,11 @@
  * tetap dilayani `/api/files/[id]` yang memeriksa `access_level` per role.
  */
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db/prisma";
-import { readFile } from "@/lib/storage";
-import { contentDisposition } from "@/lib/files/access";
+import { db } from "@/server/db/prisma";
+import { readFile } from "@/server/storage";
+import { contentDisposition } from "@/server/files/access";
 import { FileAccessLevel } from "@/generated/prisma/enums";
-import { logSafe, publicMessage } from "@/lib/errors";
+import { logSafe, publicMessage } from "@/shared/errors";
 
 export const dynamic = "force-dynamic";
 

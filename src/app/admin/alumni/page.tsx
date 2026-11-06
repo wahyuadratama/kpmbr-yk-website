@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { db } from "@/lib/db/prisma";
-import { transisiKeanggotaanAction } from "@/lib/actions/alumni";
-import TransisiForm from "@/components/alumni/transisi-form";
+import { db } from "@/server/db/prisma";
+import { transisiKeanggotaanAction } from "@/server/actions/alumni";
+import TransisiForm from "@/ui/components/alumni/transisi-form";
 
 export const metadata: Metadata = { title: "Alumni" };
 export const dynamic = "force-dynamic";

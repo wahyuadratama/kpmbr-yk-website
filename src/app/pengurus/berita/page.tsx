@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { requirePortalPage } from "@/lib/auth/guards";
-import { hasPermission } from "@/lib/auth/permissions";
-import { db } from "@/lib/db/prisma";
+import { requirePortalPage } from "@/server/auth/guards";
+import { hasPermission } from "@/server/auth/permissions";
+import { db } from "@/server/db/prisma";
 import { NewsStatus } from "@/generated/prisma/enums";
 import {
   createNewsFormAction,
   deleteNewsFormAction,
   setNewsStatusFormAction,
-} from "@/modules/news/form-actions";
-import CreateNewsForm from "@/components/pengurus/create-news-form";
-import { ConfirmActionForm } from "@/components/internal/confirm-action-form";
-import { formatTanggalPendek } from "@/lib/utils/format";
+} from "@/server/modules/news/form-actions";
+import CreateNewsForm from "@/ui/components/pengurus/create-news-form";
+import { ConfirmActionForm } from "@/ui/components/internal/confirm-action-form";
+import { formatTanggalPendek } from "@/shared/utils/format";
 
 export const metadata: Metadata = { title: "Kelola Berita" };
 export const dynamic = "force-dynamic";
