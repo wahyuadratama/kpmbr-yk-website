@@ -42,15 +42,15 @@ export const siteConfig = {
     "UKM Yogyakarta",
   ],
   address: {
-    street: "Sekretariat KPMBR-YK",
+    street: "Jl. Pengok Kidul No.14, Baciro, Kec. Gondokusuman",
     city: "Yogyakarta",
     region: "Daerah Istimewa Yogyakarta",
-    postalCode: "",
+    postalCode: "55225",
     country: "ID",
   },
   contact: {
-    email: "sekretariat@kpmbr.id",
-    instagram: "https://instagram.com/kpmbr",
+    email: "kpmbandungraya@gmail.com",
+    instagram: "https://instagram.com/kpmbandungraya.yk",
   },
 } as const;
 
