@@ -91,6 +91,7 @@ export const footerNav: { title: string; items: NavItem[] }[] = [
       { title: "Cara Bergabung", href: "/keanggotaan" },
       { title: "Persyaratan", href: "/keanggotaan#persyaratan" },
       { title: "Manfaat Anggota", href: "/keanggotaan#manfaat" },
+      { title: "Syarat & Ketentuan", href: "/syarat-ketentuan" },
     ],
   },
 ];
