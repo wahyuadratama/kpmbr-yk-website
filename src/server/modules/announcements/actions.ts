@@ -14,6 +14,7 @@ import { runAction, type ActionResult } from "@/server/actions/result";
 import { writeAudit } from "@/server/audit";
 import { AuditAction } from "@/generated/prisma/enums";
 import { parseLocalDateTime } from "@/shared/utils/datetime";
+import { notifyAnnouncementPublished } from "@/server/modules/notifications/create";
 
 const idSchema = z.object({ id: cuidSchema });
 
@@ -54,6 +55,13 @@ export async function createAnnouncementAction(
       resourceId: created.id,
       actorUserId: principal.userId,
       metadata: { audience: input.audience, priority: input.priority },
+    });
+
+    // Trigger notifikasi in-app ke semua user aktif (non-blocking via helper).
+    await notifyAnnouncementPublished({
+      announcementId: created.id,
+      title: input.title,
+      link: "/member/pengumuman",
     });
 
     refreshAnnouncementCache();

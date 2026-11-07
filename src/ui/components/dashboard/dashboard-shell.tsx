@@ -33,6 +33,7 @@ import { ROLE_LABEL, type Role } from "@/server/auth/permissions";
 import { DASHBOARD_ICONS } from "@/ui/dashboard/icons";
 import type { DashboardNavGroup } from "@/ui/dashboard/nav";
 import { logoutAction } from "@/app/(auth)/login/actions";
+import { NotificationBell } from "@/ui/components/dashboard/notification-bell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -176,7 +177,8 @@ export function DashboardShell({
               </span>
             </div>
 
-            <div className="ml-auto flex items-center gap-3">
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <NotificationBell />
             {headerActions}
             <div className="flex items-center gap-2.5">
               <span

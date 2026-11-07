@@ -173,6 +173,7 @@ model User {
   financialReports     FinancialReport[]     @relation("FinancialReportCreatedBy")
   websiteSettingUpdates WebsiteSetting[]     @relation("WebsiteSettingUpdatedBy")
   financialReportApprovals FinancialReportApproval[] @relation("FinancialReportApprovalActor")
+  notifications            Notification[]
 
   @@index([role, status])
   @@index([deletedAt])
@@ -992,6 +993,36 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([action, createdAt])
   @@map("audit_logs")
+}
+
+// -----------------------------------------------------------------------------
+// NOTIFIKASI IN-APP
+// -----------------------------------------------------------------------------
+
+/// Jenis notifikasi. Tambah nilai baru di sini bila ada trigger baru.
+enum NotificationType {
+  MEMBERSHIP_TRANSITION
+  PENGUMUMAN
+  SYSTEM
+}
+
+/// Notifikasi in-app per pengguna. Tidak pernah dikirim ke luar (email/WA).
+/// Append-only: setelah dibuat tidak diubah, hanya isRead yang bisa berubah.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String           @db.VarChar(191)
+  body      String           @db.VarChar(500)
+  /// URL tujuan saat notifikasi diklik (nullable).
+  link      String?          @db.VarChar(500)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 /// Bucket rate limiting berbasis database.
