@@ -3,9 +3,9 @@
  * Digunakan untuk laporan Prompt 1 — menampilkan nilai sebenarnya di /keanggotaan dan /kontak
  */
 
-import { db } from "../src/lib/db/prisma.js";
-import { parseList, parseTitledList } from "../src/lib/content/markdown.js";
-import { siteConfig } from "../src/lib/site-config.js";
+import { db } from "../src/server/db/prisma.js";
+import { parseList, parseTitledList } from "../src/shared/content/markdown.js";
+import { siteConfig } from "../src/shared/site-config.js";
 
 const CONTENT_KEYS = {
   persyaratan: "keanggotaan.persyaratan",
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
     console.log("1️⃣ PERSYARATAN KEANGGOTAAN:");
     if (persyaratan?.body) {
       const items = parseList(persyaratan.body);
-      items.forEach((item, i) => {
+      items.forEach((item: string, i: number) => {
         console.log(`   ${i + 1}. ${item}`);
       });
     } else {
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     console.log("\n2️⃣ MANFAAT KEANGGOTAAN:");
     if (manfaat?.body) {
       const items = parseTitledList(manfaat.body);
-      items.forEach((item) => {
+      items.forEach((item: { title: string; description: string }) => {
         console.log(`   • ${item.title}`);
         console.log(`     ${item.description}`);
       });
@@ -59,7 +59,7 @@ async function main(): Promise<void> {
     console.log("\n3️⃣ ALUR PENDAFTARAN:");
     if (langkah?.body) {
       const items = parseTitledList(langkah.body);
-      items.forEach((item, i) => {
+      items.forEach((item: { title: string; description: string }, i: number) => {
         console.log(`   Langkah ${i + 1}: ${item.title}`);
         console.log(`   ${item.description}`);
       });

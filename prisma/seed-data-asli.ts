@@ -20,7 +20,7 @@
  * Jalankan dengan: npx ts-node prisma/seed-data-asli.ts
  */
 
-import { db } from "../src/lib/db/prisma.js";
+import { db } from "../src/server/db/prisma.js";
 import { EventStatus, NewsStatus, PositionLevel } from "../src/generated/prisma/enums.js";
 
 // Penjaga lingkungan (sama seperti seed.ts)

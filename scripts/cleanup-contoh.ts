@@ -8,7 +8,7 @@
  * Jalankan dengan: npm run db:cleanup-contoh
  */
 
-import { db } from "../src/lib/db/prisma.js";
+import { db } from "../src/server/db/prisma.js";
 
 function assertCleanupAllowed(): void {
   if (process.env.NODE_ENV === "production") {
