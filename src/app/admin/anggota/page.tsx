@@ -54,11 +54,16 @@ export default async function AnggotaPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Data Anggota</h1>
-        <p className="text-sm text-muted-foreground">
-          Profil anggota, status keanggotaan, dan transisi manual AKTIF → LULUS → ALUMNI.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold">Data Anggota</h1>
+          <p className="text-sm text-muted-foreground">
+            Profil anggota, status keanggotaan, dan transisi manual AKTIF → LULUS → ALUMNI.
+          </p>
+        </div>
+        <Link href="/admin/anggota/pengajuan" className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted">
+          Pengajuan Masuk
+        </Link>
       </div>
 
       <form className="flex flex-wrap items-center gap-2 text-sm">

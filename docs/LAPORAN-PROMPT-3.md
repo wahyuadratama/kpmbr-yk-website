@@ -68,6 +68,47 @@ Branch: `membership-notifikasi` (dari `master` 31416ca). **Tidak merge.**
 2. **Transisi ilegal ditolak**: coba `ALUMNI → AKTIF` / loncat / ulang via action (form pilih aksi tidak sesuai status, atau panggil action dengan status salah) → server melempar error jelas (`Transisi ilegal... Status saat ini: ...`), ditampilkan di UI; tidak ada perubahan data.
 3. **Tanpa hak ditolak**: user ANGGOTA biasa memanggil action/API transisi → `requirePermission("member:change_status")` / guard menolak (403/UNAUTHORIZED sesuai jalur) — konsisten dengan matrix (PENGURUS/ADMIN saja punya `member:change_status`; 105 assertion auth tetap hijau).
 
-## Hasil push + nama branch
-- **Belum push** pada saat laporan ini ditulis (langkah commit+push dilakukan setelah file laporan dibuat). Target: `git push -u origin membership-notifikasi`. **Tidak merge ke master.**
-- Migrasi diterapkan ke DB dev lokal; tabel `notifications` aktif.
+## Hasil push + nama branch (inti Prompt 3)
+- Branch **`membership-notifikasi`** (dari `master` 31416ca). Commit inti: `1767bc8` — `Prompt 3: Transisi membership ANGGOTA-LULUS-ALUMNI + notifikasi in-app`. Push berhasil ke `origin/membership-notifikasi`. **Tidak merge, tidak buat PR.**
+
+---
+
+## FASE 1B — Lengkapi Data Anggota (pengajuan self-service + persetujuan sekretariat)
+
+> Ditambahkan di branch yang sama (`membership-notifikasi`) di atas Prompt 3 inti. **Tidak mengulang/mengubah kode transisi membership + notifikasi inti** kecuali trigger notif yang memang dipakai ulang (modul `notifications/create.ts` yang sudah ada).
+
+### Desain alur pengajuan + status yang dipakai
+
+**Keputusan (wajib dipatuhi):** pendaftaran anggota **manual** — form self-service **TIDAK** membuat member AKTIF; pengesahan tetap sekretariat/admin.
+
+- **Skema (paling konsisten):** model terpisah `MemberApplication` + `enum MemberApplicationStatus { PENDING, APPROVED, REJECTED }` (bukan status PENDING di `Member`, karena akun belum terhubung → belum ada baris `Member`/`memberships` sampai disetujui). Menyimpan snapshot data (fullName, nickname, gender, phone, city, bio, addressDetail), `rejectionNote`, `reviewedBy/At`. Boleh riwayat banyak baris per user, tapi **hanya 1 PENDING pada satu waktu** (dicegah server-side + cek query).
+- **Alur akun belum terhubung** (`/member/profil`, `principal.memberId` null): ganti "Hubungi sekretariat" → form **"Lengkapi Data Anggota"** (pakai ulang field ProfileForm sebisa mungkin). Submit → simpan pengajuan **PENDING** (akun tetap belum terhubung). Jika sudah ada PENDING → tampilkan **status pengajuan** (bukan form baru). Jika REJECTED → tampilkan alasan + **boleh ajukan ulang**.
+- **Persetujuan CMS (sekretariat/admin, `member:create`)** `/admin/anggota/pengajuan`: daftar pending + riwayat diproses. **Setujui** → dalam transaksi: generate `memberCode` pola `KPMBR-YK-{YYYY}-{0000}` (urut naik per tahun, konsisten; pola sebelumnya di kode hanya muncul di docs, seed pakai kode BPH/DIVISI), buat `Member` (hubungkan `userId`) + `Membership` **AKTIF** (cohort tahun berjalan), tandai pengajuan `APPROVED`, audit `CREATE Member` (metadata `fromApplicationId`), notif member disetujui (link `/member/profil`). **Tolak** → `REJECTED` + alasan/catatan, audit `UPDATE MemberApplication`, notif member ditolak (boleh ajukan ulang). Pengajuan ganda PENDING dicegah; submit saat sudah terhubung ditolak.
+- **Validasi server (Zod):** `memberApplicationSchema` (fullName wajib, format HP `/^[0-9+\-\s()]*$/`, batas panjang) — `src/shared/validation/member.ts`. Tidak percaya input klien. Aksi pakai `runAction` + guard + `writeAudit`.
+- **Notifikasi (pakai sistem Prompt 3):** submit → notif ke semua user aktif role **ADMIN & PENGURUS** (`SYSTEM`, link `/admin/anggota/pengajuan`). Setujui/Tolak → notif ke member pemohon.
+
+### File kunci yang diubah/dibuat (FASE 1B)
+- Skema/migrasi (DB dev lokal): `prisma/schema.prisma` (+`MemberApplicationStatus`, `MemberApplication`, relasi `User.memberApplications/memberApplicationReviews`), `prisma/migrations/20261022010000_add_member_applications/migration.sql` (applied lokal; resolved), `prisma generate`.
+- Server: `src/server/actions/member-application.ts` (submit/approve/reject, cegah ganda, memberCode, transaksi, audit, notif). `src/shared/validation/member.ts` (+`memberApplicationSchema`, regex HP).
+- UI member: `src/ui/components/member/member-application-form.tsx`, `src/app/member/profil/page.tsx` (form/status pengajuan/pending/rejected+ajukan ulang vs ProfileForm bila terhubung).
+- UI CMS: `src/app/admin/anggota/pengajuan/page.tsx` (daftar pending/riwayat), `src/ui/components/admin/member-application-actions.tsx` (setujui/tolak+alasan), `src/app/admin/anggota/page.tsx` (+link "Pengajuan Masuk").
+- Uji manual (beneran): `scripts/test-member-application-logic.js` (transaksi+ROLLBACK, DB lokal). Helper migrasi lokal: `scripts/{write-member-application-migration,apply-member-application-migration,apply-fase1b,probe-db,check-fase1b,ensure-fase1b-tables,check-tables,apply-notif-migration}.js`.
+
+### Hasil gate verifikasi (FASE 1B)
+
+| Gate | Hasil |
+|---|---|
+| `npx tsc --noEmit` | **HIJAU** (exit 0) |
+| `npm run build` | **HIJAU** (Next.js build sukses; route `/admin/anggota/pengajuan`, `/member/profil` terbangun) |
+| `npm run db:smoke` | **HIJAU** (8/8 passed) |
+| `npm run test:auth` | **HIJAU** (**105 lulus, 0 gagal**) — RBAC/auth/lockout/rate-limit/redirect/audit/matrix tetap lolos |
+| `npm run verify:r2` | **HIJAU** (upload/download/delete OK) |
+
+### Hasil uji manual alur (dijalankan beneran, DB lokal — bukan "perlu dijalankan")
+
+Skrip `scripts/test-member-application-logic.js` (koneksi DB lokal, transaksi + **ROLLBACK** → DB bersih): **10 lulus, 0 gagal**.
+- Akun uji belum terhubung → submit → pengajuan **PENDING** tersimpan, akun **masih belum terhubung** (member tidak dibuat); profil menampilkan status pengajuan (bukan form edit penuh) — diverifikasi oleh kondisi/logic.
+- **Cegah pengajuan ganda**: ada PENDING → dicegah dengan pesan jelas (`Anda sudah memiliki pengajuan...`).
+- **Setujui** (logika approve): akun **terhubung**, `Member` + `Membership` **AKTIF**, **memberCode** terisi (`KPMBR-YK-2026-0001`), pengajuan **APPROVED**; notif disetujui diterima member (alur notif via modul Prompt 3).
+- **Tolak**: status **REJECTED** + alasan tersimpan, notif penolakan; **akun boleh mengajukan ulang** (tanpa PENDING) → pengajuan baru PENDING tersimpan.
+- **Submit saat sudah terhubung** → ditolak (`Akun Anda sudah terhubung ke data anggota.`).
