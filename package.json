@@ -24,11 +24,15 @@
     "db:seed-asli": "tsx --env-file=.env prisma/seed-data-asli.ts",
     "db:cleanup-contoh": "tsx --env-file=.env scripts/cleanup-contoh.ts",
     "db:smoke": "tsx --env-file=.env scripts/db-smoke.ts",
+    "migrate:r2": "tsx --env-file=.env scripts/migrate-r2.ts",
+    "verify:r2": "tsx --env-file=.env scripts/verify-r2.ts",
     "test:auth": "tsx --env-file=.env scripts/test-authorization.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/util-stream-node": "^3.370.0",
     "@prisma/adapter-mariadb": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@types/qrcode": "^1.5.6",
