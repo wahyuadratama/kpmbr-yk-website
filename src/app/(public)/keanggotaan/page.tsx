@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CheckCircle2, Mail, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/ui/components/ui/button";
 import { PageHeader } from "@/ui/components/layout/page-header";
@@ -151,8 +152,11 @@ export default async function KeanggotaanPage() {
               </Button>
 
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Pendaftaran daring akan tersedia pada tahap berikutnya. Untuk
-                saat ini, proses dilakukan secara manual.
+                Pendaftaran keanggotaan diproses secara manual melalui verifikasi
+                sekretariat/admin. Dengan mengajukan pendaftaran, kamu menyetujui{" "}
+                <Link href="/syarat-ketentuan" className="underline underline-offset-4 hover:text-foreground">
+                  Syarat &amp; Ketentuan
+                </Link>.
               </p>
             </div>
           </aside>
