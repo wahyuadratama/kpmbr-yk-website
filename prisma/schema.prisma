@@ -68,6 +68,13 @@ enum MembershipEndReason {
   LAINNYA
 }
 
+/// Status pengajuan keanggotaan (self-service, persetujuan sekretariat/admin).
+enum MemberApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PositionLevel {
   KETUA
   WAKIL_KETUA
@@ -173,6 +180,9 @@ model User {
   financialReports     FinancialReport[]     @relation("FinancialReportCreatedBy")
   websiteSettingUpdates WebsiteSetting[]     @relation("WebsiteSettingUpdatedBy")
   financialReportApprovals FinancialReportApproval[] @relation("FinancialReportApprovalActor")
+  notifications            Notification[]
+  memberApplications       MemberApplication[] @relation("MemberApplicationUser")
+  memberApplicationReviews MemberApplication[] @relation("MemberApplicationReviewer")
 
   @@index([role, status])
   @@index([deletedAt])
@@ -992,6 +1002,70 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([action, createdAt])
   @@map("audit_logs")
+}
+
+// -----------------------------------------------------------------------------
+// PENGAJUAN KEANGGOTAAN (self-service, persetujuan sekretariat/admin)
+// -----------------------------------------------------------------------------
+
+/// Pengajuan data anggota oleh akun yang belum terhubung ke Member.
+/// Submit TIDAK membuat Member/User.member aktif — harus disetujui ADMIN/PENGURUS.
+/// Riwayat disimpan (boleh ada beberapa baris per user; hanya 1 PENDING pada satu waktu).
+model MemberApplication {
+  id     String                  @id @default(cuid())
+  userId String                  @map("user_id")
+  user   User                    @relation("MemberApplicationUser", fields: [userId], references: [id], onDelete: Cascade)
+  status MemberApplicationStatus @default(PENDING)
+
+  fullName      String  @map("full_name") @db.VarChar(191)
+  nickname      String? @db.VarChar(64)
+  gender        Gender?
+  phone         String? @db.VarChar(32)
+  addressDetail String? @map("address_detail") @db.VarChar(255)
+  city          String? @db.VarChar(100)
+  bio           String? @db.Text
+
+  rejectionNote String?   @map("rejection_note") @db.VarChar(255)
+  reviewedById  String?   @map("reviewed_by_id")
+  reviewedBy    User?     @relation("MemberApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime? @map("reviewed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("member_applications")
+}
+
+// -----------------------------------------------------------------------------
+// NOTIFIKASI IN-APP
+// -----------------------------------------------------------------------------
+
+/// Jenis notifikasi. Tambah nilai baru di sini bila ada trigger baru.
+enum NotificationType {
+  MEMBERSHIP_TRANSITION
+  PENGUMUMAN
+  SYSTEM
+}
+
+/// Notifikasi in-app per pengguna. Tidak pernah dikirim ke luar (email/WA).
+/// Append-only: setelah dibuat tidak diubah, hanya isRead yang bisa berubah.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String           @db.VarChar(191)
+  body      String           @db.VarChar(500)
+  /// URL tujuan saat notifikasi diklik (nullable).
+  link      String?          @db.VarChar(500)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 /// Bucket rate limiting berbasis database.
