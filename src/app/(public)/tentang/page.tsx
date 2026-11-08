@@ -1,7 +1,6 @@
 import * as React from "react";
 import type { Metadata } from "next";
 import { PageHeader } from "@/ui/components/layout/page-header";
-import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
 import { SectionHeading } from "@/ui/components/layout/section-heading";
 import {
   getCurrentPositions,
@@ -34,9 +33,7 @@ export default async function TentangPage() {
         eyebrow="Profil Organisasi"
         title="Tentang KPMBR-YK"
         description={`${siteConfig.fullName} adalah organisasi yang menghimpun pelajar dan mahasiswa dari berbagai perguruan tinggi di Yogyakarta.`}
-      >
-        <MockDataNotice scope="seluruh isi halaman ini" />
-      </PageHeader>
+      />
 
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-3">
@@ -46,7 +43,7 @@ export default async function TentangPage() {
                 id="sejarah"
                 className="text-2xl font-semibold tracking-tight"
               >
-                Sejarah
+                Sejarah KPMBR-YK
               </h2>
               <div className="mt-4 flex flex-col gap-4 text-base leading-[1.8] text-foreground/90">
                 {sejarah.map((paragraph, index) => (

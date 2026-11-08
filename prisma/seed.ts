@@ -68,7 +68,7 @@ const DEV_ACCOUNTS: { email: string; role: Role }[] = [
 // PLACEHOLDER KONTEN
 // -----------------------------------------------------------------------------
 
-/** Tanggal relatif, bukan tanggal hardcoded, agar tidak mengarangjfakta. */
+/** Tanggal relatif, bukan tanggal hardcoded, agar tidak mengarang fakta. */
 function hariLalu(offsetDays: number): Date {
   return new Date(Date.now() - offsetDays * 86_400_000);
 }
@@ -77,6 +77,15 @@ function hariDepan(offsetDays: number): Date {
 }
 
 const PLACEHOLDER = "[Konten belum diisi. Pengurus wajib melengkapinya lewat dashboard.]";
+
+/** Teks sejarah (disetujui). Dipakai seed sebagai konten awal; CMS tetap bisa mengubahnya. */
+const SEJARAH_BODY = `Keluarga Pelajar dan Mahasiswa Bandung Raya – Yogyakarta (KPMBR-YK) adalah organisasi daerah (orda) yang menjadi rumah bagi para pelajar dan mahasiswa asal Bandung Raya — Kota Bandung, Kabupaten Bandung, Kabupaten Bandung Barat, dan Kota Cimahi — yang sedang menempuh studi di Yogyakarta.
+
+Organisasi ini berdiri pada 12 Desember 1972. Sejak awal, KPMBR-YK hadir sebagai wadah pemersatu bagi pelajar dan mahasiswa Bandung Raya di perantauan: tempat menjaga silaturahmi, menumbuhkan rasa persaudaraan dan kekeluargaan, serta mengkader generasi muda agar kreatif, kritis, dan peduli terhadap daerah asal maupun bangsa.
+
+Sebagai organisasi kedaerahan, KPMBR-YK berasaskan Pancasila dan Undang-Undang Dasar 1945, serta bersifat pengkaderan, kemahasiswaan, kemasyarakatan, dan independen. Dalam kiprahnya, KPMBR-YK berada dalam naungan IKPM Jawa Barat.
+
+Selama lebih dari lima dekade, KPMBR-YK terus menjadi ruang bertumbuh bagi pelajar dan mahasiswa Bandung Raya — dari generasi ke generasi, dari satu kepengurusan ke kepengurusan berikutnya, hingga Kabinet Sabilulungan pada periode 2026–2027.`;
 
 /** Kunci konten statis. Harus sama dengan `CONTENT_KEYS` di query publik. */
 const CONTENT = [
@@ -189,20 +198,34 @@ async function seedDevUsers(): Promise<number> {
 
 async function seedContents(): Promise<number> {
   for (const item of CONTENT) {
+    const isSejarah = item.key === "sejarah";
     await db.organizationContent.upsert({
       where: { key: item.key },
       create: {
         key: item.key,
         kind: item.kind,
-        title: item.title,
-        body: PLACEHOLDER,
+        title: isSejarah ? "Sejarah KPMBR-YK" : item.title,
+        body: isSejarah ? SEJARAH_BODY : PLACEHOLDER,
         isPublished: true,
         publishedAt: new Date(),
       },
-      // Placeholder tidak menimpa isi yang sudah diisi pengurus.
-      update: {},
+      // Upsert idempoten: tidak menimpa isi yang sudah diisi pengurus. Khusus
+      // 'sejarah', ganti hanya bila masih placeholder/kosong (seed awal teks disetujui).
+      update: isSejarah
+        ? {
+            title: "Sejarah KPMBR-YK",
+            body: SEJARAH_BODY,
+            isPublished: true,
+            publishedAt: new Date(),
+          }
+        : {},
     });
   }
+  // Bersihkan placeholder sejarah yang mungkin tertinggal dari seed lama.
+  await db.organizationContent.updateMany({
+    where: { key: "sejarah", body: { contains: "[Konten belum diisi" } },
+    data: { title: "Sejarah KPMBR-YK", body: SEJARAH_BODY, isPublished: true },
+  });
   return CONTENT.length;
 }
 
@@ -351,7 +374,7 @@ async function main(): Promise<void> {
 
   const results: [string, number][] = [
     ["Akun dev", await seedDevUsers()],
-    ["Konten statis (placeholder)", await seedContents()],
+    ["Konten statis (sejarah terisi)", await seedContents()],
     ["Nama jabatan", await seedPositions()],
     ["Berita", await seedNews()],
     ["Agenda", await seedEvents()],
