@@ -222,3 +222,46 @@ export const listFinancialReports = unstable_cache(
   ["public", "finance", "reports"],
   { revalidate: 900, tags: [FINANCE_TAGS.reports] },
 );
+
+/**
+ * Rincian transaksi untuk transparansi anggota (login required, dipanggil dari portal).
+ * HANYA field yang wajar dibaca anggota: tanggal, kategori/jenis, keterangan, jumlah.
+ * TIDAK menampilkan bukti, createdBy, atau field internal.
+ */
+export async function listTransparencyTransactions({ limit = 100 }: { limit?: number } = {}) {
+  // ambil kronologis (asc) untuk hitung saldo berjalan, lalu balik ke desc untuk tampil
+  const asc = await db.financialTransaction.findMany({
+    where: { deletedAt: null },
+    orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+    take: Math.max(1, Math.min(limit, 500)),
+    select: {
+      id: true,
+      date: true,
+      amount: true,
+      type: true,
+      description: true,
+      category: { select: { name: true } },
+    },
+  });
+
+  let running = BigInt(0);
+  const withBalance = asc.map((t) => {
+    const amt = t.amount as bigint;
+    running = t.type === FinancialTransactionType.INCOME ? running + amt : running - amt;
+    return {
+      id: t.id,
+      date: t.date,
+      type: t.type as "INCOME" | "EXPENSE",
+      categoryName: t.category?.name ?? "-",
+      description: t.description ?? "",
+      amount: amt,
+      amountFormatted: formatRupiah(amt),
+      runningBalance: running,
+      runningBalanceFormatted: formatRupiah(running),
+    };
+  });
+
+  return withBalance.reverse();
+}
+
+export type TransparencyTransaction = Awaited<ReturnType<typeof listTransparencyTransactions>>[number];

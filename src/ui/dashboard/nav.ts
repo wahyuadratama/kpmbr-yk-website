@@ -277,6 +277,12 @@ export const ALUMNI_NAV: DashboardNavGroup[] = [
     items: [
       { title: "Agenda", href: "/alumni/agenda", icon: "calendar" },
       { title: "Pengumuman", href: "/alumni/pengumuman", icon: "megaphone" },
+      {
+        title: "Transparansi Keuangan",
+        href: "/alumni/transparansi",
+        icon: "chart",
+        permission: "finance:read_summary",
+      },
     ],
   },
 ];
