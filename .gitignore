@@ -46,3 +46,5 @@ next-env.d.ts
 # prisma — Prisma Client di-generate, bukan di-commit.
 # CATATAN: prisma/migrations/*.sql WAJIB di-commit (itu riwayat database).
 /src/generated/prisma
+
+tmp-dokumentasi/
