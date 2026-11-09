@@ -4,7 +4,7 @@
  * Prinsip: token mentah TIDAK pernah disimpan di database. Hanya hash-nya
  * yang tersimpan, sehingga bocornya database tidak membocorkan token verifikasi.
  */
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 /** Buat token opaque acak (URL-safe, tanpa padding). */
 export function generateToken(): string {
@@ -16,7 +16,10 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-/** Bandingkan token mentah dengan hash (constant-ish). */
+/** Bandingkan token mentah dengan hash (constant-time). */
 export function compareToken(token: string, hash: string): boolean {
-  return hashToken(token) === hash;
+  const a = Buffer.from(hashToken(token), "hex");
+  const b = Buffer.from(hash, "hex");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }

@@ -102,7 +102,7 @@ export type StoredObject = {
   checksum: string;
 };
 
-const LOCAL_ROOT = path.join(process.cwd(), ".data", "uploads");
+const LOCAL_ROOT = path.join(process.cwd(), ".data", "uploads") + path.sep;
 
 /**
  * Kunci objek. Menggabungkan tanggal, ID acak, dan ekstensi hasil
@@ -204,7 +204,7 @@ export async function readFile(storageKey: string): Promise<Buffer> {
   }
 
   // Fallback ke local storage
-  const target = path.join(LOCAL_ROOT, storageKey);
+  const target = path.join(LOCAL_ROOT, path.basename(storageKey));
   const normalized = path.normalize(target);
   if (!normalized.startsWith(LOCAL_ROOT)) {
     throw new Error("storageKey di luar direktori penyimpanan.");
@@ -228,7 +228,7 @@ export async function deleteObject(storageKey: string): Promise<void> {
   }
 
   // Hapus dari local storage
-  const target = path.normalize(path.join(LOCAL_ROOT, storageKey));
+  const target = path.normalize(path.join(LOCAL_ROOT, path.basename(storageKey)));
   if (!target.startsWith(LOCAL_ROOT)) return;
   await rm(target, { force: true });
 }
