@@ -2,19 +2,27 @@ import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Images } from "lucide-react";
+import { ArrowLeft, Images, X, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/ui/components/ui/button";
 import { MockDataNotice } from "@/ui/components/public/mock-data-notice";
 import { JsonLd } from "@/ui/components/public/json-ld";
 import { EmptyState } from "@/ui/components/ui/empty-state";
 import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/ui/components/ui/dialog";
+import {
   getAlbumBySlug,
   getAlbumDetail,
+  getAlbumItems,
   getAlbums,
   getAlbumSlugs,
 } from "@/server/modules/documentation/queries";
 import { formatTanggal, truncate } from "@/shared/utils/format";
 import { siteConfig } from "@/shared/site-config";
+import { publicFileSrc } from "@/server/files/public-url";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -46,12 +54,7 @@ export async function generateMetadata({
 }
 
 /**
- * Detail album dokumentasi.
- *
- * REQUIREMENT §16: album berisi foto/video kegiatan. Foto binary ada di
- * Cloudflare R2 dan hanya bisa dimuat lewat route server yang memeriksa
- * `access_level`, jadi sampai R2 terpasang halaman ini menampilkan
- * placeholder dan jumlah foto, bukan file gambar.
+ * Detail album dokumentasi dengan galeri foto.
  */
 export default async function DokumentasiDetailPage({ params }: PageProps) {
   const { slug } = await params;
@@ -59,9 +62,12 @@ export default async function DokumentasiDetailPage({ params }: PageProps) {
   if (!detail) notFound();
 
   const { album, itemCount } = detail;
+  const items = await getAlbumItems(slug);
   const others = (await getAlbums())
     .filter((item) => item.slug !== album.slug)
     .slice(0, 3);
+
+  const hasRealPhotos = items.length > 0;
 
   return (
     <>
@@ -99,22 +105,85 @@ export default async function DokumentasiDetailPage({ params }: PageProps) {
               </p>
             ) : null}
 
-            <MockDataNotice scope="isi album ini" className="mt-6" />
+            {!hasRealPhotos && (
+              <MockDataNotice scope="isi album ini" className="mt-6" />
+            )}
           </div>
         </header>
 
         <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-          {itemCount === 0 ? (
+          {itemCount === 0 || !hasRealPhotos ? (
             <EmptyState
               icon={Images}
               title="Foto belum tersedia"
               description="Berkas foto kegiatan disimpan di penyimpanan objek dan dimuat lewat route server yang memeriksa tingkat akses. Album ini belum memiliki berkas yang dapat ditunjukkan."
             />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Album ini berisi {itemCount} berkas. Penampil galeri akan
-              ditambahkan setelah penyimpanan objek terhubung.
-            </p>
+            <>
+              <div
+                className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                role="list"
+                aria-label={`Foto dalam album ${album.title}`}
+              >
+                {items.map((item, index) => {
+                  const src = publicFileSrc(item.file);
+                  return (
+                    <Dialog key={item.id}>
+                      <DialogTrigger asChild>
+                        <article
+                          className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted transition-shadow hover:shadow-lg"
+                          role="listitem"
+                        >
+                          {src ? (
+                            <Image
+                              src={src}
+                              alt={item.file.altText ?? `${album.title} - foto ${index + 1}`}
+                              fill
+                              sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div
+                              aria-hidden="true"
+                              className="grid size-full place-items-center bg-muted"
+                            >
+                              <Images className="size-8 text-muted-foreground/50" strokeWidth={1.5} />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        </article>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
+                        {src && (
+                          <div className="relative size-full flex items-center justify-center bg-black">
+                            <Image
+                              src={src}
+                              alt={item.file.altText ?? `${album.title} - foto ${index + 1}`}
+                              width={item.file.width ?? 1200}
+                              height={item.file.height ?? 800}
+                              className="max-w-full max-h-[80vh] object-contain"
+                              priority
+                            />
+                            {item.caption && (
+                              <div className="absolute bottom-4 left-4 right-4 px-4 py-2 bg-black/70 text-white text-sm">
+                                {item.caption}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                  );
+                })}
+              </div>
+
+              {items.length > 0 && (
+                <p className="mt-6 text-sm text-muted-foreground text-center">
+                  Klik foto untuk memperbesar. Total {items.length} foto.
+                </p>
+              )}
+            </>
           )}
 
           <div className="mt-10 flex flex-wrap gap-3 border-t border-border pt-8">

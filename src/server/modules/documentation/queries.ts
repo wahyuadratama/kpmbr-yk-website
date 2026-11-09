@@ -9,7 +9,7 @@ import { unstable_cache } from "next/cache";
 import { FileAccessLevel } from "@/generated/prisma/enums";
 import { db } from "@/server/db/prisma";
 import { publicFileSrc } from "@/server/files/public-url";
-import type { DocAlbum } from "@/shared/types/public";
+import type { DocAlbum, DocItem } from "@/shared/types/public";
 
 /** Token warna album → kelas Tailwind. Sama seperti berita: DB menyimpan
  * token, kelas diatur di satu tempat. */
@@ -106,6 +106,37 @@ export const getAlbumDetail = unstable_cache(
     return { album: toDocAlbum(row), itemCount: row._count.items };
   },
   ["public", "albums", "detail"],
+  { revalidate: 3600, tags: ["documentation"] },
+);
+
+/** Item-item foto dalam satu album (untuk galeri). */
+export const getAlbumItems = unstable_cache(
+  async (slug: string): Promise<DocItem[]> => {
+    const items = await db.documentationItem.findMany({
+      where: { album: { deletedAt: null, slug } },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        sortOrder: true,
+        caption: true,
+        file: {
+          select: {
+            id: true,
+            storageKey: true,
+            fileName: true,
+            mimeType: true,
+            size: true,
+            width: true,
+            height: true,
+            altText: true,
+            accessLevel: true,
+          },
+        },
+      },
+    });
+    return items as DocItem[];
+  },
+  ["public", "albums", "items"],
   { revalidate: 3600, tags: ["documentation"] },
 );
 

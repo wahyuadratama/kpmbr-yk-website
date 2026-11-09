@@ -79,6 +79,23 @@ export type DocAlbum = {
   coverImageAlt: string;
 };
 
+export type DocItem = {
+  id: string;
+  sortOrder: number;
+  caption: string | null;
+  file: {
+    id: string;
+    storageKey: string;
+    fileName: string;
+    mimeType: string;
+    size: number;
+    width: number | null;
+    height: number | null;
+    altText: string | null;
+    accessLevel: string;
+  };
+};
+
 export type OrgPosition = {
   code: string;
   name: string;
